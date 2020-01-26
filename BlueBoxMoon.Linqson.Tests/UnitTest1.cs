@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 
 namespace BlueBoxMoon.Linqson.Tests
@@ -21,6 +22,40 @@ namespace BlueBoxMoon.Linqson.Tests
             var actualMethodInfo = helper.GetMethodInfoFromSignature( signature );
 
             Assert.AreEqual( expectedMethodInfo.ToString(), actualMethodInfo.ToString() );
+        }
+
+        [Test]
+        public void TestAllEnumerable()
+        {
+            var type = typeof( Enumerable );
+
+            foreach ( var expectedMethodInfo in type.GetMethods() )
+            {
+
+                var helper = new RealTypeSignatureHelper();
+                var signature = helper.GetSignatureFromMethodInfo( expectedMethodInfo );
+                var actualMethodInfo = helper.GetMethodInfoFromSignature( signature );
+
+                Assert.NotNull( actualMethodInfo, signature );
+                Assert.AreEqual( expectedMethodInfo.ToString(), actualMethodInfo.ToString(), signature );
+            }
+        }
+
+        [Test]
+        public void Test3()
+        {
+            var type = typeof( Enumerable );
+            var expectedMethodInfo = type.GetMethods()
+                .Where( a => a.Name == "SelectMany" )
+                .Skip( 0 )
+                .First();
+            var expectedType = expectedMethodInfo.GetParameters()[2].ParameterType;
+
+            var helper = new RealTypeSignatureHelper();
+            var signature = helper.GetSignatureFromType( expectedType );
+            var actualType = helper.GetTypeFromSignature( signature );
+
+            Assert.True( helper.AreTypesEqual( expectedType, actualType ) );
         }
     }
 

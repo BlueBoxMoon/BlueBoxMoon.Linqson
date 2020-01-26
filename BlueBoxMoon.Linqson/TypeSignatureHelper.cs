@@ -28,6 +28,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo( "BlueBoxMoon.Linqson.Tests" )]
 namespace BlueBoxMoon.Linqson
 {
     /// <summary>
@@ -368,68 +369,21 @@ namespace BlueBoxMoon.Linqson
                         methods = methods.Where( a => a.GetGenericArguments().Length == genericParameterCount );
                     }
 
-                    methods = methods.Where( a => a.GetParameters().Length == parameterTypes.Length );
-
-                    var ml = methods.ToList();
-                    methods = methods.Where( a =>
-                    {
-                        var methodParameters = a.GetParameters().Select( b => b.ParameterType ).ToList();
-                        for ( int i = 0; i < methodParameters.Count; i++ )
+                    methods = methods.Where( a => a.GetParameters().Length == parameterTypes.Length )
+                        .Where( a =>
                         {
-                            if ( methodParameters[i].GetTypeInfo().ContainsGenericParameters )
-                            {
-                                var methodArguments = methodParameters[i].GenericTypeArguments;
-                                var parameterArguments = parameterTypes[i].GenericTypeArguments;
-
-                                if ( methodArguments.Length != parameterArguments.Length )
-                                {
-                                    return false;
-                                }
-
-                                for ( int ii = 0; ii < methodArguments.Length; ii++ )
-                                {
-                                    if ( !AreTypesEqual( methodArguments[ii], parameterArguments[ii] ) )
-                                    {
-                                        return false;
-                                    }
-                                }
-                            }
-
-                            if ( methodParameters[i].GetTypeInfo().IsGenericType != parameterTypes[i].GetTypeInfo().IsGenericType )
-                            {
-                                return false;
-                            }
-
-                            if ( methodParameters[i].GetTypeInfo().IsGenericType )
-                            {
-                                if ( methodParameters[i].GetGenericTypeDefinition() != parameterTypes[i].GetGenericTypeDefinition() )
-                                {
-                                    return false;
-                                }
-
-                                var methodGenericArguments = methodParameters[i].GetTypeInfo().GenericTypeArguments;
-                                var parameterGenericArguments = parameterTypes[i].GenericTypeArguments;
-                                for ( int ii = 0; ii < methodGenericArguments.Length; ii++ )
-                                {
-                                    if ( !AreTypesEqual( methodGenericArguments[ii], parameterGenericArguments[ii] ) )
-                                    {
-                                        return false;
-                                    }
-                                }
-                            }
-                            else
+                            var methodParameters = a.GetParameters().Select( b => b.ParameterType ).ToList();
+                            for ( int i = 0; i < methodParameters.Count; i++ )
                             {
                                 if ( !AreTypesEqual( methodParameters[i], parameterTypes[i] ) )
                                 {
                                     return false;
                                 }
                             }
-                        }
 
-                        return true;
-                    } );
+                            return true;
+                        } );
 
-                    var methodList = methods.ToList();
                     var method = methods.SingleOrDefault();
 
                     return method;
@@ -453,12 +407,17 @@ namespace BlueBoxMoon.Linqson
         /// <param name="type">The first type.</param>
         /// <param name="otherType">The second type.</param>
         /// <returns><c>true</c> if they are deemed equal; otherwise <c>false</c>.</returns>
-        private bool AreTypesEqual( Type type, Type otherType )
+        internal bool AreTypesEqual( Type type, Type otherType )
         {
             if ( type.IsGenericParameter != otherType.IsGenericParameter )
             {
                 return false;
             }
+
+            //if ( type.GetTypeInfo().IsGenericType != otherType.GetTypeInfo().IsGenericType )
+            //{
+            //    return false;
+            //}
 
             if ( type.GenericTypeArguments.Length != otherType.GenericTypeArguments.Length )
             {
@@ -542,6 +501,7 @@ namespace BlueBoxMoon.Linqson
 
         protected override Type MakeGenericMethodParameter( int position )
         {
+            return new GenericMethodParameterType( position );
             return Type.MakeGenericMethodParameter( position );
         }
     }
@@ -564,7 +524,9 @@ namespace BlueBoxMoon.Linqson
             return new GenericMethodParameterType( position );
         }
     }
+#endif
 
+#if NETCOREAPP || NETSTANDARD || NETFULL
     internal class GenericMethodParameterType : Type
     {
         public override Assembly Assembly => throw new NotImplementedException();
