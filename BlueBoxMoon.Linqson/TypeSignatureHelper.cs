@@ -527,20 +527,214 @@ namespace BlueBoxMoon.Linqson
         }
     }
 
-    public interface ITypeExtenions
-    {
-        bool ContainsGenericParameters { get; }
-    }
 
-    public static class Extensions
+
+#if NETCOREAPP || NETSTANDARD
+    public class RealTypeSignatureHelper : TypeSignatureHelper
     {
-        public static bool GetContainsGenericParameters( this Type type )
+        protected override MethodInfo GetMethod( Type type, string name, int genericParameterCount, Type[] parameterTypes )
         {
-            if ( type is ITypeExtenions typeExtenions )
-            {
-            }
+            var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
 
-            return type.GetTypeInfo().ContainsGenericParameters;
+            //return type.GetMethod( name, genericParameterCount, bindingFlags, null, parameterTypes, null );
+            return null;
+        }
+
+        protected override Type MakeGenericMethodParameter( int position )
+        {
+            return Type.MakeGenericMethodParameter( position );
         }
     }
+#endif
+
+#if NETFULL
+    public class RealTypeSignatureHelper : TypeSignatureHelper
+    {
+        protected override MethodInfo GetMethod( Type type, string name, int genericParameterCount, Type[] parameterTypes )
+        {
+            var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
+
+            //return type.GetMethod( name, genericParameterCount, bindingFlags, null, parameterTypes, null );
+            return null;
+        }
+
+        protected override Type MakeGenericMethodParameter( int position )
+        {
+            //return Type.MakeGenericMethodParameter( position );
+            return new GenericMethodParameterType( position );
+        }
+    }
+
+    internal class GenericMethodParameterType : Type
+    {
+        public override Assembly Assembly => throw new NotImplementedException();
+
+        public override string AssemblyQualifiedName => throw new NotImplementedException();
+
+        public override Type BaseType => throw new NotImplementedException();
+
+        public override string FullName => throw new NotImplementedException();
+
+        public override Guid GUID => throw new NotImplementedException();
+
+        public override Module Module => throw new NotImplementedException();
+
+        public override string Namespace => throw new NotImplementedException();
+
+        public override Type UnderlyingSystemType => throw new NotImplementedException();
+
+        public override string Name => throw new NotImplementedException();
+
+        //public override bool IsGenericMethodParameter => true;
+
+        public override int GenericParameterPosition => _position;
+
+        public override bool IsGenericParameter => true;
+
+        //public override bool IsGenericTypeParameter => false;
+
+        private int _position;
+
+        public GenericMethodParameterType( int position )
+        {
+            _position = position;
+        }
+
+        public override ConstructorInfo[] GetConstructors( BindingFlags bindingAttr )
+        {
+            throw new NotImplementedException();
+        }
+
+        public override object[] GetCustomAttributes( bool inherit )
+        {
+            throw new NotImplementedException();
+        }
+
+        public override object[] GetCustomAttributes( Type attributeType, bool inherit )
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Type GetElementType()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override EventInfo GetEvent( string name, BindingFlags bindingAttr )
+        {
+            throw new NotImplementedException();
+        }
+
+        public override EventInfo[] GetEvents( BindingFlags bindingAttr )
+        {
+            throw new NotImplementedException();
+        }
+
+        public override FieldInfo GetField( string name, BindingFlags bindingAttr )
+        {
+            throw new NotImplementedException();
+        }
+
+        public override FieldInfo[] GetFields( BindingFlags bindingAttr )
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Type GetInterface( string name, bool ignoreCase )
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Type[] GetInterfaces()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override MemberInfo[] GetMembers( BindingFlags bindingAttr )
+        {
+            throw new NotImplementedException();
+        }
+
+        public override MethodInfo[] GetMethods( BindingFlags bindingAttr )
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Type GetNestedType( string name, BindingFlags bindingAttr )
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Type[] GetNestedTypes( BindingFlags bindingAttr )
+        {
+            throw new NotImplementedException();
+        }
+
+        public override PropertyInfo[] GetProperties( BindingFlags bindingAttr )
+        {
+            throw new NotImplementedException();
+        }
+
+        public override object InvokeMember( string name, BindingFlags invokeAttr, Binder binder, object target, object[] args, ParameterModifier[] modifiers, CultureInfo culture, string[] namedParameters )
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool IsDefined( Type attributeType, bool inherit )
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override TypeAttributes GetAttributeFlagsImpl()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override ConstructorInfo GetConstructorImpl( BindingFlags bindingAttr, Binder binder, CallingConventions callConvention, Type[] types, ParameterModifier[] modifiers )
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override MethodInfo GetMethodImpl( string name, BindingFlags bindingAttr, Binder binder, CallingConventions callConvention, Type[] types, ParameterModifier[] modifiers )
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override PropertyInfo GetPropertyImpl( string name, BindingFlags bindingAttr, Binder binder, Type returnType, Type[] types, ParameterModifier[] modifiers )
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override bool HasElementTypeImpl()
+        {
+            return false;
+            throw new NotImplementedException();
+        }
+
+        protected override bool IsArrayImpl()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override bool IsByRefImpl()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override bool IsCOMObjectImpl()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override bool IsPointerImpl()
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override bool IsPrimitiveImpl()
+        {
+            throw new NotImplementedException();
+        }
+    }
+#endif
 }
