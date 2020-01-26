@@ -35,12 +35,8 @@ namespace BlueBoxMoon.Linqson
     /// A helper for dealing with <see cref="Type"/> and signatures that allow
     /// them to be re-created later.
     /// </summary>
-    public abstract class TypeSignatureHelper
+    public partial class TypeSignatureHelper
     {
-        protected abstract Type MakeGenericMethodParameter( int position );
-
-        protected abstract MethodInfo GetMethod( Type type, string name, int genericParameterCount, Type[] parameterTypes );
-
         /// <summary>
         /// Gets a type from the signature definition.
         /// </summary>
@@ -72,11 +68,29 @@ namespace BlueBoxMoon.Linqson
                 }
                 else
                 {
-                    var type = Type.GetType( $"{typeName}, {assemblyName}" );
+                    Type type = null;
+
+                    var assembly = AppDomain.CurrentDomain.GetAssemblies()
+                        .FirstOrDefault( a => a.GetName().Name == assemblyName );
+
+                    if ( assembly != null )
+                    {
+                        type = assembly.GetTypes()
+                            .FirstOrDefault( a => typeName == $"{a.Namespace}.{a.Name}" );
+                    }
 
                     //
-                    // If we didn't find it in the assembly, try from the
+                    // Try normal resolution with assembly name.
+                    //
+                    if ( type == null )
+                    {
+                        type = Type.GetType( $"{typeName}, {assemblyName}" );
+                    }
+
+                    //
+                    // If we still didn't find it in the assembly, try from the
                     // standard system assemblies - just in case.
+                    //
                     if ( type == null )
                     {
                         type = Type.GetType( typeName );
@@ -263,7 +277,7 @@ namespace BlueBoxMoon.Linqson
                 //
                 else if ( c == ',' )
                 {
-                    assemblyName = GetNameIdentifier( reader );
+                    assemblyName = GetNameIdentifier( reader ).Trim();
                 }
 
                 //
@@ -358,35 +372,7 @@ namespace BlueBoxMoon.Linqson
                         throw new Exception( "Invalid method signature." );
                     }
 
-                    //return null;
-                    var methods = declaringType.GetTypeInfo().GetDeclaredMethods( methodName );
-                    if ( genericParameterCount == 0 )
-                    {
-                        methods = methods.Where( a => !a.ContainsGenericParameters );
-                    }
-                    else
-                    {
-                        methods = methods.Where( a => a.GetGenericArguments().Length == genericParameterCount );
-                    }
-
-                    methods = methods.Where( a => a.GetParameters().Length == parameterTypes.Length )
-                        .Where( a =>
-                        {
-                            var methodParameters = a.GetParameters().Select( b => b.ParameterType ).ToList();
-                            for ( int i = 0; i < methodParameters.Count; i++ )
-                            {
-                                if ( !AreTypesEqual( methodParameters[i], parameterTypes[i] ) )
-                                {
-                                    return false;
-                                }
-                            }
-
-                            return true;
-                        } );
-
-                    var method = methods.SingleOrDefault();
-
-                    return method;
+                    return GetMethod( declaringType, methodName, genericParameterCount, parameterTypes );
                 }
 
                 //
@@ -413,11 +399,6 @@ namespace BlueBoxMoon.Linqson
             {
                 return false;
             }
-
-            //if ( type.GetTypeInfo().IsGenericType != otherType.GetTypeInfo().IsGenericType )
-            //{
-            //    return false;
-            //}
 
             if ( type.GenericTypeArguments.Length != otherType.GenericTypeArguments.Length )
             {
@@ -475,7 +456,7 @@ namespace BlueBoxMoon.Linqson
             var sb = new StringBuilder( 100 );
 
             var c = reader.Peek();
-            while ( c != -1 && c != '<' && c != '>' && c != '(' && c != ')' && c != '{' && c != '}' && c != '@' )
+            while ( c != -1 && c != ',' && c != '<' && c != '>' && c != '(' && c != ')' && c != '{' && c != '}' && c != '@' )
             {
                 reader.Read();
                 sb.Append( ( char ) c );
@@ -484,51 +465,76 @@ namespace BlueBoxMoon.Linqson
 
             return sb.ToString();
         }
-    }
 
-
-
-#if NETCOREAPP || NETSTANDARD
-    public class RealTypeSignatureHelper : TypeSignatureHelper
-    {
-        protected override MethodInfo GetMethod( Type type, string name, int genericParameterCount, Type[] parameterTypes )
+        private MethodInfo GetMethod( Type type, string name, int genericParameterCount, Type[] parameterTypes )
         {
             var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
 
-            //return type.GetMethod( name, genericParameterCount, bindingFlags, null, parameterTypes, null );
-            return null;
-        }
+            var methods = type.GetMethods( bindingFlags )
+                .Where( a => a.Name == name );
 
-        protected override Type MakeGenericMethodParameter( int position )
+            if ( genericParameterCount == 0 )
+            {
+                methods = methods.Where( a => !a.ContainsGenericParameters );
+            }
+            else
+            {
+                methods = methods.Where( a => a.GetGenericArguments().Length == genericParameterCount );
+            }
+
+            methods = methods.Where( a => a.GetParameters().Length == parameterTypes.Length )
+                .Where( a =>
+                {
+                    var methodParameters = a.GetParameters().Select( b => b.ParameterType ).ToList();
+                    for ( int i = 0; i < methodParameters.Count; i++ )
+                    {
+                        if ( !AreTypesEqual( methodParameters[i], parameterTypes[i] ) )
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                } );
+
+            var method = methods.SingleOrDefault();
+
+            return method;
+        }
+    }
+
+#if NETCOREAPP || NETSTANDARD
+    public partial class TypeSignatureHelper
+    {
+        protected Type MakeGenericMethodParameter( int position )
         {
-            return new GenericMethodParameterType( position );
             return Type.MakeGenericMethodParameter( position );
         }
     }
-#endif
-
-#if NETFULL
-    public class RealTypeSignatureHelper : TypeSignatureHelper
+#elif NETFULL
+    public partial class TypeSignatureHelper
     {
-        protected override MethodInfo GetMethod( Type type, string name, int genericParameterCount, Type[] parameterTypes )
+        protected Type MakeGenericMethodParameter( int position )
         {
-            var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
-
-            //return type.GetMethod( name, genericParameterCount, bindingFlags, null, parameterTypes, null );
-            return null;
-        }
-
-        protected override Type MakeGenericMethodParameter( int position )
-        {
-            //return Type.MakeGenericMethodParameter( position );
             return new GenericMethodParameterType( position );
         }
     }
-#endif
 
-#if NETCOREAPP || NETSTANDARD || NETFULL
     internal class GenericMethodParameterType : Type
     {
+        public override int GenericParameterPosition => _position;
+
+        public override bool IsGenericParameter => true;
+
+        private readonly int _position;
+
+        public GenericMethodParameterType( int position )
+        {
+            _position = position;
+        }
+
+        #region Not Implemented
+
         public override Assembly Assembly => throw new NotImplementedException();
 
         public override string AssemblyQualifiedName => throw new NotImplementedException();
@@ -546,21 +552,6 @@ namespace BlueBoxMoon.Linqson
         public override Type UnderlyingSystemType => throw new NotImplementedException();
 
         public override string Name => throw new NotImplementedException();
-
-        //public override bool IsGenericMethodParameter => true;
-
-        public override int GenericParameterPosition => _position;
-
-        public override bool IsGenericParameter => true;
-
-        //public override bool IsGenericTypeParameter => false;
-
-        private int _position;
-
-        public GenericMethodParameterType( int position )
-        {
-            _position = position;
-        }
 
         public override ConstructorInfo[] GetConstructors( BindingFlags bindingAttr )
         {
@@ -697,6 +688,10 @@ namespace BlueBoxMoon.Linqson
         {
             throw new NotImplementedException();
         }
+
+        #endregion
     }
+#else
+#error Unsupported SDK framework.
 #endif
 }

@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using NUnit.Framework;
 
 namespace BlueBoxMoon.Linqson.Tests
@@ -17,7 +19,7 @@ namespace BlueBoxMoon.Linqson.Tests
             var type = typeof( TestMethods );
             var expectedMethodInfo = type.GetMethod( "TestMethod1" );
 
-            var helper = new RealTypeSignatureHelper();
+            var helper = new TypeSignatureHelper();
             var signature = helper.GetSignatureFromMethodInfo( expectedMethodInfo );
             var actualMethodInfo = helper.GetMethodInfoFromSignature( signature );
 
@@ -32,30 +34,18 @@ namespace BlueBoxMoon.Linqson.Tests
             foreach ( var expectedMethodInfo in type.GetMethods() )
             {
 
-                var helper = new RealTypeSignatureHelper();
+                var helper = new TypeSignatureHelper();
                 var signature = helper.GetSignatureFromMethodInfo( expectedMethodInfo );
-                var actualMethodInfo = helper.GetMethodInfoFromSignature( signature );
+                MethodInfo actualMethodInfo = null;
+
+                Assert.DoesNotThrow( () =>
+                {
+                    actualMethodInfo = helper.GetMethodInfoFromSignature( signature );
+                }, signature );
 
                 Assert.NotNull( actualMethodInfo, signature );
                 Assert.AreEqual( expectedMethodInfo.ToString(), actualMethodInfo.ToString(), signature );
             }
-        }
-
-        [Test]
-        public void Test3()
-        {
-            var type = typeof( Enumerable );
-            var expectedMethodInfo = type.GetMethods()
-                .Where( a => a.Name == "SelectMany" )
-                .Skip( 0 )
-                .First();
-            var expectedType = expectedMethodInfo.GetParameters()[2].ParameterType;
-
-            var helper = new RealTypeSignatureHelper();
-            var signature = helper.GetSignatureFromType( expectedType );
-            var actualType = helper.GetTypeFromSignature( signature );
-
-            Assert.True( helper.AreTypesEqual( expectedType, actualType ) );
         }
     }
 
