@@ -4,10 +4,6 @@
     <TargetFrameworks>netcoreapp2.1;netstandard2.1;net45</TargetFrameworks>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="SystemJson\" />
-  </ItemGroup>
-
   <!-- .NET Core 2.1 references, compilation flags and build options -->
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1'">
     <DefineConstants>NETCOREAPP;NETCOREAPP2_1</DefineConstants>

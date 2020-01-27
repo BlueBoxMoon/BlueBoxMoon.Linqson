@@ -28,7 +28,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo( "BlueBoxMoon.Linqson.Tests" )]
 namespace BlueBoxMoon.Linqson
 {
     /// <summary>

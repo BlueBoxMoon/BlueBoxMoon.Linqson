@@ -20,7 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-#if false
 using System;
 using System.Reflection;
 using System.Text.Json;
@@ -62,11 +61,17 @@ namespace BlueBoxMoon.Linqson.SystemJson
 
             while ( reader.Read() )
             {
+                //
+                // We have read the entire object.
+                //
                 if ( reader.TokenType == JsonTokenType.EndObject )
                 {
                     return expr;
                 }
 
+                //
+                // Should always start the loop with a property name.
+                //
                 if ( reader.TokenType != JsonTokenType.PropertyName )
                 {
                     throw new JsonException();
@@ -76,23 +81,35 @@ namespace BlueBoxMoon.Linqson.SystemJson
 
                 if ( propertyName == "$T" )
                 {
+                    //
+                    // Class type definition.
+                    //
                     reader.Read();
                     var typeName = reader.GetString();
                     expr = ( EncodedExpression ) Activator.CreateInstance( Type.GetType( typeName ) );
                 }
                 else
                 {
+                    //
+                    // If we never found a $T object then something is invalid in the stream.
+                    //
                     if ( expr == null )
                     {
                         throw new JsonException();
                     }
 
+                    //
+                    // Read the property from the object.
+                    //
                     var propertyInfo = expr.GetType().GetProperty( propertyName );
                     if ( propertyInfo == null )
                     {
                         throw new JsonException();
                     }
 
+                    //
+                    // Deserialize and store value.
+                    //
                     var v = JsonSerializer.Deserialize( ref reader, propertyInfo.PropertyType, options );
 
                     propertyInfo.SetValue( expr, v );
@@ -112,7 +129,7 @@ namespace BlueBoxMoon.Linqson.SystemJson
         {
             writer.WriteStartObject();
 
-            writer.WriteString( "$T", value.GetType().FullName );
+            writer.WriteString( "$T", value.GetType().AssemblyQualifiedName );
 
             foreach ( var property in value.GetType().GetProperties( BindingFlags.Instance | BindingFlags.Public ) )
             {
@@ -125,4 +142,3 @@ namespace BlueBoxMoon.Linqson.SystemJson
         }
     }
 }
-#endif

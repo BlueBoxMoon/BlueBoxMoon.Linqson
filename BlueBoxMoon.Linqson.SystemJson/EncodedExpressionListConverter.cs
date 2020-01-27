@@ -20,7 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-#if false
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -94,4 +93,3 @@ namespace BlueBoxMoon.Linqson.SystemJson
         }
     }
 }
-#endif
