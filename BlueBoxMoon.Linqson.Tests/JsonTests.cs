@@ -27,19 +27,42 @@ using NUnit.Framework;
 
 namespace BlueBoxMoon.Linqson.Tests
 {
-    public class LambdaExpressionTests
+    public class JsonTests
     {
         [Test]
-        public void Lambda()
+        public void NewtonsoftEncodeDecode()
         {
             Expression<Func<int>> expected = () => 3 + 3;
             var encoded = EncodedExpression.EncodeExpression( expected );
-            var actual = ( Expression<Func<int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject( encoded );
+            var jsonEncoded = Newtonsoft.Json.JsonConvert.DeserializeObject<EncodedExpression>( json );
+
+            var actual = ( Expression<Func<int>> ) EncodedExpression.DecodeExpression( jsonEncoded );
 
             Assert.AreEqual( expected.ToString(), actual.ToString() );
 
             Assert.AreEqual( expected.Compile().Invoke(), actual.Compile().Invoke() );
             Assert.AreEqual( 6, actual.Compile().Invoke() );
         }
+
+#if NETCOREAPP
+        [Test]
+        public void SystemJsonEncodeDecode()
+        {
+            Expression<Func<int>> expected = () => 3 + 3;
+            var encoded = EncodedExpression.EncodeExpression( expected );
+
+            var json = System.Text.Json.JsonSerializer.Serialize( encoded );
+            var jsonEncoded = System.Text.Json.JsonSerializer.Deserialize<EncodedExpression>( json );
+
+            var actual = ( Expression<Func<int>> ) EncodedExpression.DecodeExpression( jsonEncoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            Assert.AreEqual( expected.Compile().Invoke(), actual.Compile().Invoke() );
+            Assert.AreEqual( 6, actual.Compile().Invoke() );
+        }
+#endif
     }
 }

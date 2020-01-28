@@ -6,10 +6,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlueBoxMoon.Linqson", "Blue
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlueBoxMoon.Linqson.Tests", "BlueBoxMoon.Linqson.Tests\BlueBoxMoon.Linqson.Tests.csproj", "{5FF862A4-4EA8-4889-B4D1-F4C7D5919DA4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlueBoxMoon.Linqson.SystemJson", "BlueBoxMoon.Linqson.SystemJson\BlueBoxMoon.Linqson.SystemJson.csproj", "{8F475A3E-3BB7-4132-AA16-5CFA1D6C821A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlueBoxMoon.Linqson.JsonNet", "BlueBoxMoon.Linqson.JsonNet\BlueBoxMoon.Linqson.JsonNet.csproj", "{A11D9E83-D044-4CEF-B7AA-9C813F03B70E}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{29F6056E-F674-4DC5-A92F-300DE3C7CCBE}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
@@ -29,14 +25,6 @@ Global
 		{5FF862A4-4EA8-4889-B4D1-F4C7D5919DA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5FF862A4-4EA8-4889-B4D1-F4C7D5919DA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5FF862A4-4EA8-4889-B4D1-F4C7D5919DA4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8F475A3E-3BB7-4132-AA16-5CFA1D6C821A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8F475A3E-3BB7-4132-AA16-5CFA1D6C821A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8F475A3E-3BB7-4132-AA16-5CFA1D6C821A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8F475A3E-3BB7-4132-AA16-5CFA1D6C821A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A11D9E83-D044-4CEF-B7AA-9C813F03B70E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A11D9E83-D044-4CEF-B7AA-9C813F03B70E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A11D9E83-D044-4CEF-B7AA-9C813F03B70E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A11D9E83-D044-4CEF-B7AA-9C813F03B70E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

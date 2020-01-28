@@ -50,17 +50,7 @@ namespace BlueBoxMoon.Linqson.Internals
         /// <returns>A <see cref="ParameterExpression"/> instance.</returns>
         public ParameterExpression GetOrAddParameter( EncodedExpression parameter )
         {
-            var guidValue = parameter.Values["Guid"];
-            Guid guid;
-
-            if ( guidValue is Guid realGuidValue )
-            {
-                guid = realGuidValue;
-            }
-            else
-            {
-                guid = Guid.Parse( guidValue.ToString() );
-            }
+            var guid = Guid.Parse( parameter.Values["Guid"] );
 
             if ( !_parameters.ContainsKey( guid ) )
             {

@@ -58,7 +58,7 @@ namespace BlueBoxMoon.Linqson
 
         public IDictionary<string, EncodedExpression> Expressions { get; set; }
 
-        public IDictionary<string, object> Values { get; set; }
+        public IDictionary<string, string> Values { get; set; }
 
         #endregion
 
@@ -345,7 +345,7 @@ namespace BlueBoxMoon.Linqson
                 {
                     { "Operand", EncodeExpression( unaryExpression.Operand, state, options ) }
                 },
-                Values = new Dictionary<string, object>
+                Values = new Dictionary<string, string>
                 {
                     { "Type", unaryExpression.Type.AssemblyQualifiedName }
                 }
@@ -362,7 +362,7 @@ namespace BlueBoxMoon.Linqson
         internal static Expression DecodeUnaryExpression( EncodedExpression expression, DecodeState state, DecodeOptions options )
         {
             var operand = DecodeExpression( expression.Expressions["Operand"], state, options );
-            var type = Type.GetType( ( string ) expression.Values["Type"] );
+            var type = Type.GetType( expression.Values["Type"] );
 
             return Expression.MakeUnary( expression.NodeType, operand, type );
         }
@@ -385,7 +385,7 @@ namespace BlueBoxMoon.Linqson
             return new EncodedExpression
             {
                 NodeType = constantExpression.NodeType,
-                Values = new Dictionary<string, object>
+                Values = new Dictionary<string, string>
                 {
                     { "Type", constantExpression.Type.AssemblyQualifiedName },
                     { "Value", constantExpression.Value?.ToString() }
@@ -402,8 +402,8 @@ namespace BlueBoxMoon.Linqson
         /// <returns>An <see cref="Expression"/> object.</returns>
         internal static Expression DecodeConstantExpression( EncodedExpression expression, DecodeState state, DecodeOptions options )
         {
-            var type = Type.GetType( ( string ) expression.Values["Type"] );
-            var Value = ( string ) expression.Values["Value"];
+            var type = Type.GetType( expression.Values["Type"] );
+            var Value = expression.Values["Value"];
 
             if ( type == typeof( bool ) )
             {
@@ -479,9 +479,9 @@ namespace BlueBoxMoon.Linqson
             {
                 NodeType = lambdaExpression.NodeType,
                 Expressions = expressions,
-                Values = new Dictionary<string, object>
+                Values = new Dictionary<string, string>
                 {
-                    { "ParameterCount", lambdaExpression.Parameters.Count }
+                    { "ParameterCount", lambdaExpression.Parameters.Count.ToString() }
                 }
             };
         }
@@ -534,11 +534,11 @@ namespace BlueBoxMoon.Linqson
                 {
                     { "Expression", EncodeExpression( memberExpression.Expression, state, options ) }
                 },
-                Values = new Dictionary<string, object>
+                Values = new Dictionary<string, string>
                 {
                     { "Type", $"{memberExpression.Member.ReflectedType.FullName}, {memberExpression.Member.ReflectedType.Assembly.GetName().Name}" },
                     { "Member", memberExpression.Member.Name },
-                    { "IsProperty", memberExpression.Member.MemberType == MemberTypes.Property }
+                    { "IsProperty", ( memberExpression.Member.MemberType == MemberTypes.Property ).ToString() }
                 }
             };
         }
@@ -553,15 +553,15 @@ namespace BlueBoxMoon.Linqson
         internal static Expression DecodeMemberExpression( EncodedExpression expression, DecodeState state, DecodeOptions options )
         {
             MemberInfo memberInfo;
-            Type type = Type.GetType( ( string ) expression.Values["Type"] );
+            Type type = Type.GetType( expression.Values["Type"] );
 
-            if ( ( bool ) expression.Values["IsProperty"] )
+            if ( bool.Parse( expression.Values["IsProperty"] ) )
             {
-                memberInfo = type.GetProperty( ( string ) expression.Values["Member"] );
+                memberInfo = type.GetProperty( expression.Values["Member"] );
             }
             else
             {
-                memberInfo = type.GetField( ( string ) expression.Values["Member"] );
+                memberInfo = type.GetField( expression.Values["Member"] );
             }
 
             var expr = DecodeExpression( expression.Expressions["Expression"], state, options );
@@ -633,10 +633,10 @@ namespace BlueBoxMoon.Linqson
             {
                 NodeType = methodCallExpression.NodeType,
                 Expressions = expressions,
-                Values = new Dictionary<string, object>
+                Values = new Dictionary<string, string>
                 {
                     { "Method", methodSignature },
-                    { "ArgumentCount", methodCallExpression.Arguments.Count }
+                    { "ArgumentCount", methodCallExpression.Arguments.Count.ToString() }
                 }
             };
         }
@@ -664,7 +664,7 @@ namespace BlueBoxMoon.Linqson
                 arguments.Add( DecodeExpression( expression.Expressions[$"a{i}"], state, options ) );
             }
 
-            var methodInfo = new TypeSignatureHelper().GetMethodInfoFromSignature( ( string ) expression.Values["Method"] );
+            var methodInfo = new TypeSignatureHelper().GetMethodInfoFromSignature( expression.Values["Method"] );
 
             if ( methodInfo == null )
             {

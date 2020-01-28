@@ -20,26 +20,34 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-using System;
-using System.Linq.Expressions;
+using System.Linq;
+using System.Reflection;
 
 using NUnit.Framework;
 
 namespace BlueBoxMoon.Linqson.Tests
 {
-    public class LambdaExpressionTests
+    public class Tests
     {
         [Test]
-        public void Lambda()
+        public void TestAllEnumerableMethods()
         {
-            Expression<Func<int>> expected = () => 3 + 3;
-            var encoded = EncodedExpression.EncodeExpression( expected );
-            var actual = ( Expression<Func<int>> ) EncodedExpression.DecodeExpression( encoded );
+            var type = typeof( Enumerable );
 
-            Assert.AreEqual( expected.ToString(), actual.ToString() );
+            foreach ( var expectedMethodInfo in type.GetMethods( BindingFlags.Static | BindingFlags.Public ) )
+            {
+                var helper = new TypeSignatureHelper();
+                var signature = helper.GetSignatureFromMethodInfo( expectedMethodInfo );
+                MethodInfo actualMethodInfo = null;
 
-            Assert.AreEqual( expected.Compile().Invoke(), actual.Compile().Invoke() );
-            Assert.AreEqual( 6, actual.Compile().Invoke() );
+                Assert.DoesNotThrow( () =>
+                {
+                    actualMethodInfo = helper.GetMethodInfoFromSignature( signature );
+                }, signature );
+
+                Assert.NotNull( actualMethodInfo, signature );
+                Assert.AreEqual( expectedMethodInfo.ToString(), actualMethodInfo.ToString(), signature );
+            }
         }
     }
 }

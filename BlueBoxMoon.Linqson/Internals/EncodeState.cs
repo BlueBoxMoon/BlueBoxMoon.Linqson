@@ -55,7 +55,7 @@ namespace BlueBoxMoon.Linqson.Internals
                 var p = new EncodedExpression
                 {
                     NodeType = ExpressionType.Parameter,
-                    Values = new Dictionary<string, object>
+                    Values = new Dictionary<string, string>
                     {
                         { "Type", parameter.Type.AssemblyQualifiedName },
                         { "Name", parameter.Name },
