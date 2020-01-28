@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright( c) 2020 Blue Box Moon
 //
@@ -50,6 +50,10 @@ namespace BlueBoxMoon.Linqson
         /// The node type represented by this encoded expression.
         /// </summary>
         public ExpressionType NodeType { get; set; }
+
+        public IDictionary<string, EncodedExpression> Expressions { get; set; }
+
+        public IDictionary<string, object> Values { get; set; }
 
         #endregion
 

@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright( c) 2020 Blue Box Moon
 //
@@ -38,7 +38,7 @@ namespace BlueBoxMoon.Linqson
         /// The parameters that are passed in and made available to descendent
         /// expressions.
         /// </summary>
-        public List<EncodedParameterExpression> Parameters { get; set; }
+        public List<EncodedExpression> Parameters { get; set; }
 
         /// <summary>
         /// The main body of this lambda.
@@ -59,11 +59,9 @@ namespace BlueBoxMoon.Linqson
         /// <returns>An object that can be serialized.</returns>
         internal static EncodedLambdaExpression EncodeExpression( LambdaExpression expression, EncodeState state, EncodeOptions options )
         {
-            var parameters = expression.Parameters.Select( a => new EncodedParameterExpression( a ) ).ToList();
-            foreach ( var p in parameters )
-            {
-                state.PushParameter( p.Name, p );
-            }
+            var parameters = expression.Parameters
+                .Select( a => EncodeExpression( a, state, options ) )
+                .ToList();
 
             var jsonExpression = new EncodedLambdaExpression
             {
@@ -71,11 +69,6 @@ namespace BlueBoxMoon.Linqson
                 Parameters = parameters,
                 Body = EncodeExpression( expression.Body, state, options )
             };
-
-            foreach ( var p in parameters )
-            {
-                state.PopParameter( p.Name );
-            }
 
             return jsonExpression;
         }
@@ -88,19 +81,11 @@ namespace BlueBoxMoon.Linqson
         /// <returns>A LINQ <see cref="Expression"/> instance.</returns>
         internal protected override Expression DecodeExpression( DecodeState state, DecodeOptions options )
         {
-            var parameters = Parameters.Select( a => Expression.Parameter( Type.GetType( a.Type ), a.Name ) ).ToList();
-
-            foreach ( var p in parameters )
-            {
-                state.PushParameter( p.Name, p );
-            }
+            var parameters = Parameters.Select( a => a.DecodeExpression( state, options ) )
+                .Cast<ParameterExpression>()
+                .ToList();
 
             var lambda = Expression.Lambda( Body.DecodeExpression( state, options ), parameters );
-
-            foreach ( var p in parameters )
-            {
-                state.PopParameter( p.Name );
-            }
 
             return lambda;
         }

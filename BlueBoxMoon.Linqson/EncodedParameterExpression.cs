@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright( c) 2020 Blue Box Moon
 //
@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
+using System;
 using System.Linq.Expressions;
 
 namespace BlueBoxMoon.Linqson
@@ -42,6 +43,11 @@ namespace BlueBoxMoon.Linqson
         /// </summary>
         public string Name { get; set; }
 
+        /// <summary>
+        /// Gets or sets the unique identifier.
+        /// </summary>
+        public Guid Guid { get; set; } = Guid.NewGuid();
+
         #endregion
 
         #region Constructors
@@ -59,7 +65,7 @@ namespace BlueBoxMoon.Linqson
         /// <param name="expression">The original expression.</param>
         internal EncodedParameterExpression( ParameterExpression expression )
         {
-            NodeType = ExpressionType.Parameter;
+            NodeType = expression.NodeType;
             Type = expression.Type.AssemblyQualifiedName;
             Name = expression.Name;
         }
@@ -78,7 +84,7 @@ namespace BlueBoxMoon.Linqson
         /// <returns>An object that can be serialized.</returns>
         internal static EncodedParameterExpression EncodeExpression( ParameterExpression expression, EncodeState state, EncodeOptions options )
         {
-            return state.GetParameter( expression.Name );
+            return state.GetOrAddParameter( expression );
         }
 
         /// <summary>
@@ -89,7 +95,7 @@ namespace BlueBoxMoon.Linqson
         /// <returns>A LINQ <see cref="Expression"/> instance.</returns>
         internal protected override Expression DecodeExpression( DecodeState state, DecodeOptions options )
         {
-            return state.GetParameter( Name );
+            return state.GetOrAddParameter( this );
         }
 
         #endregion

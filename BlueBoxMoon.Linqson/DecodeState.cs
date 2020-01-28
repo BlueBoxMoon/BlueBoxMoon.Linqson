@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright( c) 2020 Blue Box Moon
 //
@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
@@ -36,39 +37,25 @@ namespace BlueBoxMoon.Linqson
         /// <summary>
         /// The current Lambda parameters in effect.
         /// </summary>
-        private Dictionary<string, ParameterExpression> _parameters { get; } = new Dictionary<string, ParameterExpression>();
+        private Dictionary<Guid, ParameterExpression> _parameters { get; } = new Dictionary<Guid, ParameterExpression>();
 
         #endregion
 
         #region Methods
 
         /// <summary>
-        /// Adds a new lambda parameter into the encoder state.
+        /// Gets the <see cref="ParameterExpression"/> associated with the parameter.
         /// </summary>
-        /// <param name="name">The name of the parameter.</param>
-        /// <param name="expression">The expression associated with the name.</param>
-        public void PushParameter( string name, ParameterExpression expression )
+        /// <param name="parameter">The encoded parameter.</param>
+        /// <returns>A <see cref="ParameterExpression"/> instance.</returns>
+        public ParameterExpression GetOrAddParameter( EncodedParameterExpression parameter )
         {
-            _parameters.Add( name, expression );
-        }
+            if ( !_parameters.ContainsKey( parameter.Guid ) )
+            {
+                _parameters.Add( parameter.Guid, Expression.Parameter( Type.GetType( parameter.Type ), parameter.Name ) );
+            }
 
-        /// <summary>
-        /// Removes a lambda parameter from the encoder state.
-        /// </summary>
-        /// <param name="name">The name of the parameter.</param>
-        public void PopParameter( string name )
-        {
-            _parameters.Remove( name );
-        }
-
-        /// <summary>
-        /// Gets the <see cref="EncodedParameterExpression"/> associated with the name.
-        /// </summary>
-        /// <param name="name">The name of the parameter.</param>
-        /// <returns>A <see cref="EncodedParameterExpression"/> instance.</returns>
-        public ParameterExpression GetParameter( string name )
-        {
-            return _parameters[name];
+            return _parameters[parameter.Guid];
         }
 
         #endregion

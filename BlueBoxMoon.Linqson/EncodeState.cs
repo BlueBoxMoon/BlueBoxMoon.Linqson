@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright( c) 2020 Blue Box Moon
 //
@@ -21,6 +21,7 @@
 // SOFTWARE.
 //
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace BlueBoxMoon.Linqson
 {
@@ -35,39 +36,26 @@ namespace BlueBoxMoon.Linqson
         /// <summary>
         /// The current Lambda parameters in effect.
         /// </summary>
-        private Dictionary<string, EncodedParameterExpression> _parameters { get; } = new Dictionary<string, EncodedParameterExpression>();
+        private Dictionary<ParameterExpression, EncodedParameterExpression> _parameters { get; } = new Dictionary<ParameterExpression, EncodedParameterExpression>();
 
         #endregion
 
         #region Methods
 
         /// <summary>
-        /// Adds a new lambda parameter into the encoder state.
-        /// </summary>
-        /// <param name="name">The name of the parameter.</param>
-        /// <param name="expression">The expression associated with the name.</param>
-        public void PushParameter( string name, EncodedParameterExpression expression )
-        {
-            _parameters.Add( name, expression );
-        }
-
-        /// <summary>
-        /// Removes a lambda parameter from the encoder state.
-        /// </summary>
-        /// <param name="name">The name of the parameter.</param>
-        public void PopParameter( string name )
-        {
-            _parameters.Remove( name );
-        }
-
-        /// <summary>
         /// Gets the <see cref="EncodedParameterExpression"/> associated with the name.
         /// </summary>
-        /// <param name="name">The name of the parameter.</param>
+        /// <param name="parameter">The parameter.</param>
         /// <returns>A <see cref="EncodedParameterExpression"/> instance.</returns>
-        public EncodedParameterExpression GetParameter( string name )
+        public EncodedParameterExpression GetOrAddParameter( ParameterExpression parameter )
         {
-            return _parameters[name];
+            if ( !_parameters.ContainsKey( parameter ) )
+            {
+                var p = new EncodedParameterExpression( parameter );
+                _parameters.Add( parameter, p );
+            }
+
+            return _parameters[parameter];
         }
 
         #endregion
