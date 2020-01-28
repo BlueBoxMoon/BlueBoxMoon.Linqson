@@ -39,6 +39,14 @@ namespace BlueBoxMoon.Linqson.Internals
         /// </summary>
         private Dictionary<Guid, ParameterExpression> _parameters { get; } = new Dictionary<Guid, ParameterExpression>();
 
+        /// <summary>
+        /// Gets the signature helper.
+        /// </summary>
+        /// <value>
+        /// The signature helper.
+        /// </value>
+        public TypeSignatureHelper SignatureHelper { get; } = new TypeSignatureHelper();
+
         #endregion
 
         #region Methods

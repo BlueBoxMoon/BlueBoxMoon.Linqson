@@ -613,7 +613,7 @@ namespace BlueBoxMoon.Linqson
             var methodCallExpression = ( MethodCallExpression ) expression;
 
             var expressions = new Dictionary<string, EncodedExpression>();
-            var methodSignature = new TypeSignatureHelper().GetSignatureFromMethodInfo( methodCallExpression.Method );
+            var methodSignature = state.SignatureHelper.GetSignatureFromMethodInfo( methodCallExpression.Method );
 
             for ( int i = 0; i < methodCallExpression.Arguments.Count; i++ )
             {
@@ -664,7 +664,7 @@ namespace BlueBoxMoon.Linqson
                 arguments.Add( DecodeExpression( expression.Expressions[$"a{i}"], state, options ) );
             }
 
-            var methodInfo = new TypeSignatureHelper().GetMethodInfoFromSignature( expression.Values["Method"] );
+            var methodInfo = state.SignatureHelper.GetMethodInfoFromSignature( expression.Values["Method"] );
 
             if ( methodInfo == null )
             {

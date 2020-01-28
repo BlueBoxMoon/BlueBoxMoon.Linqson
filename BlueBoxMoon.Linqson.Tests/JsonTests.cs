@@ -63,6 +63,41 @@ namespace BlueBoxMoon.Linqson.Tests
             Assert.AreEqual( expected.Compile().Invoke(), actual.Compile().Invoke() );
             Assert.AreEqual( 6, actual.Compile().Invoke() );
         }
+
+        [Test]
+        public void SystemJsonEncodeNewtonsoftDecode()
+        {
+            Expression<Func<int>> expected = () => 3 + 3;
+            var encoded = EncodedExpression.EncodeExpression( expected );
+
+            var json = System.Text.Json.JsonSerializer.Serialize( encoded );
+            var jsonEncoded = Newtonsoft.Json.JsonConvert.DeserializeObject<EncodedExpression>( json );
+
+            var actual = ( Expression<Func<int>> ) EncodedExpression.DecodeExpression( jsonEncoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            Assert.AreEqual( expected.Compile().Invoke(), actual.Compile().Invoke() );
+            Assert.AreEqual( 6, actual.Compile().Invoke() );
+        }
+
+        [Test]
+        public void NewtonsoftEncodeSystemJsonDecode()
+        {
+            Expression<Func<int>> expected = () => 3 + 3;
+            var encoded = EncodedExpression.EncodeExpression( expected );
+
+            var json = Newtonsoft.Json.JsonConvert.SerializeObject( encoded );
+            var jsonEncoded = System.Text.Json.JsonSerializer.Deserialize<EncodedExpression>( json );
+
+            var actual = ( Expression<Func<int>> ) EncodedExpression.DecodeExpression( jsonEncoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            Assert.AreEqual( expected.Compile().Invoke(), actual.Compile().Invoke() );
+            Assert.AreEqual( 6, actual.Compile().Invoke() );
+        }
+
 #endif
     }
 }

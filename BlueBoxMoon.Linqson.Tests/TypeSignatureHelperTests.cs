@@ -27,7 +27,7 @@ using NUnit.Framework;
 
 namespace BlueBoxMoon.Linqson.Tests
 {
-    public class Tests
+    public class TypeSignatureHelperTests
     {
         [Test]
         public void TestAllEnumerableMethods()
@@ -48,6 +48,15 @@ namespace BlueBoxMoon.Linqson.Tests
                 Assert.NotNull( actualMethodInfo, signature );
                 Assert.AreEqual( expectedMethodInfo.ToString(), actualMethodInfo.ToString(), signature );
             }
+        }
+
+        [TestCase( "SelectMany<3>@{System.Linq.Enumerable, System.Linq}({System.Collections.Generic.IEnumerable`1<{!!0}>, System.Private.CoreLib},{System.Func`3<{!!0},{System.Int32, System.Private.CoreLib},{System.Collections.Generic.IEnumerable`1<{!!1}>, System.Private.CoreLib}>, System.Private.CoreLib},{System.Func`3<{!!0},{!!1},{!!2}>, System.Private.CoreLib})" )] /* Net Core */
+        [TestCase( "SelectMany<3>@{System.Linq.Enumerable, System.Core}({System.Collections.Generic.IEnumerable`1<{!!0}>, mscorlib},{System.Func`2<{!!0},{System.Collections.Generic.IEnumerable`1<{!!1}>, mscorlib}>, mscorlib},{System.Func`3<{!!0},{!!1},{!!2}>, mscorlib})" )] /* Net Full */
+        public void DecodeFromSignature( string signature )
+        {
+            var helper = new TypeSignatureHelper();
+
+            Assert.DoesNotThrow( () => helper.GetMethodInfoFromSignature( signature ) );
         }
     }
 }

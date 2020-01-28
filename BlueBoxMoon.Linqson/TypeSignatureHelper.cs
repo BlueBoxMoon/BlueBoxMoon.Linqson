@@ -1,4 +1,4 @@
-﻿// MIT License
+// MIT License
 //
 // Copyright( c) 2020 Blue Box Moon
 //
@@ -22,7 +22,6 @@
 //
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -61,15 +60,16 @@ namespace BlueBoxMoon.Linqson
             //
             if ( !string.IsNullOrWhiteSpace( assemblyName ) )
             {
-                if ( assemblyName == "mscorlib" || assemblyName == "System.Private.CoreLib" )
-                {
-                    return Type.GetType( typeName );
-                }
-                else
-                {
-                    Type type = null;
+                Type type = null;
 
-                    var assembly = AppDomain.CurrentDomain.GetAssemblies()
+                //
+                // If this isn't a system assembly, then first try to load from
+                // an assembly that matches the name.
+                //
+                if ( assemblyName != "mscorlib" && assemblyName != "System.Private.CoreLib" )
+                {
+                    var assembly = AppDomain.CurrentDomain
+                        .GetAssemblies()
                         .FirstOrDefault( a => a.GetName().Name == assemblyName );
 
                     if ( assembly != null )
@@ -77,26 +77,31 @@ namespace BlueBoxMoon.Linqson
                         type = assembly.GetTypes()
                             .FirstOrDefault( a => typeName == $"{a.Namespace}.{a.Name}" );
                     }
-
-                    //
-                    // Try normal resolution with assembly name.
-                    //
-                    if ( type == null )
-                    {
-                        type = Type.GetType( $"{typeName}, {assemblyName}" );
-                    }
-
-                    //
-                    // If we still didn't find it in the assembly, try from the
-                    // standard system assemblies - just in case.
-                    //
-                    if ( type == null )
-                    {
-                        type = Type.GetType( typeName );
-                    }
-
-                    return type;
                 }
+
+                //
+                // Okay, no luck there. Try standard system libraries.
+                //
+                if ( type == null )
+                {
+                    type = Type.GetType( typeName );
+                }
+
+                //
+                // Still nothing? Come on man, work with me! Brute force search all
+                // assemblies. It's possible to have conflicts, but hope for the best.
+                // We do this because there are some differences between frameworks in
+                // .NET and types can exist in different assemblies on different platforms.
+                //
+                if ( type == null )
+                {
+                    type = AppDomain.CurrentDomain
+                        .GetAssemblies()
+                        .SelectMany( a => a.GetTypes() )
+                        .FirstOrDefault( a => typeName == $"{a.Namespace}.{a.Name}" );
+                }
+
+                return type;
             }
             else
             {
@@ -465,6 +470,14 @@ namespace BlueBoxMoon.Linqson
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Gets the method matching the criteria.
+        /// </summary>
+        /// <param name="type">The type that declares the method.</param>
+        /// <param name="name">The name of the method.</param>
+        /// <param name="genericParameterCount">The generic parameter count.</param>
+        /// <param name="parameterTypes">The parameter types.</param>
+        /// <returns>A <see cref="MethodInfo"/> instance or <c>null</c> if no match was found.</returns>
         private MethodInfo GetMethod( Type type, string name, int genericParameterCount, Type[] parameterTypes )
         {
             var bindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
@@ -627,7 +640,7 @@ namespace BlueBoxMoon.Linqson
             throw new NotImplementedException();
         }
 
-        public override object InvokeMember( string name, BindingFlags invokeAttr, Binder binder, object target, object[] args, ParameterModifier[] modifiers, CultureInfo culture, string[] namedParameters )
+        public override object InvokeMember( string name, BindingFlags invokeAttr, Binder binder, object target, object[] args, ParameterModifier[] modifiers, System.Globalization.CultureInfo culture, string[] namedParameters )
         {
             throw new NotImplementedException();
         }
