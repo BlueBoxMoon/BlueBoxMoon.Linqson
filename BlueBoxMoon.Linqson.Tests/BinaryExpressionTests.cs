@@ -1,19 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Linq.Expressions;
 
 using NUnit.Framework;
 
 namespace BlueBoxMoon.Linqson.Tests
 {
-    // TODO: Need to handle all the Assign variations.
     public class BinaryExpressionTests
     {
         [Test]
         public void Add()
         {
-            var expected = Expression.AddAssign( Expression.Constant( 2 ), Expression.Constant( 3 ) );
+            var expected = Expression.Add( Expression.Constant( 2 ), Expression.Constant( 3 ) );
             var encoded = EncodedExpression.EncodeExpression( expected );
             var actual = EncodedExpression.DecodeExpression( encoded );
 
@@ -40,6 +37,134 @@ namespace BlueBoxMoon.Linqson.Tests
 
             Assert.AreEqual( expectedLambda.Compile().Invoke(), actualLambda.Compile().Invoke() );
             Assert.AreEqual( ( short ) -25536, actualLambda.Compile().Invoke() );
+        }
+
+        [Test]
+        public void AddAssign()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = 6
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = 6
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.AddAssign( propExpr, Expression.Constant( 10 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.AreEqual( expectedFn( expectedObject ), actualFn( actualObject ) );
+            Assert.AreEqual( expectedObject.PropertyValue, actualObject.PropertyValue );
+
+            actualObject.PropertyValue = 6;
+            Assert.AreEqual( 16, actualFn( actualObject ) );
+            Assert.AreEqual( 16, actualObject.PropertyValue );
+        }
+
+        [Test]
+        public void AddAssign_Overflow()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = 2000000000
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = 2000000000
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.AddAssign( propExpr, Expression.Constant( 1000000000 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.AreEqual( expectedFn( expectedObject ), actualFn( actualObject ) );
+            Assert.AreEqual( expectedObject.PropertyValue, actualObject.PropertyValue );
+
+            actualObject.PropertyValue = 2000000000;
+            Assert.AreEqual( -1294967296, actualFn( actualObject ) );
+            Assert.AreEqual( -1294967296, actualObject.PropertyValue );
+        }
+
+        [Test]
+        public void AddAssignChecked()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = 6
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = 6
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.AddAssignChecked( propExpr, Expression.Constant( 10 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.AreEqual( expectedFn( expectedObject ), actualFn( actualObject ) );
+            Assert.AreEqual( expectedObject.PropertyValue, actualObject.PropertyValue );
+
+            actualObject.PropertyValue = 6;
+            Assert.AreEqual( 16, actualFn( actualObject ) );
+            Assert.AreEqual( 16, actualObject.PropertyValue );
+        }
+
+        [Test]
+        public void AddAssignChecked_Overflow()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = 2000000000
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = 2000000000
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.AddAssignChecked( propExpr, Expression.Constant( 1000000000 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.Throws( typeof( OverflowException ), () => expectedFn.Invoke( expectedObject ) );
+            Assert.Throws( typeof( OverflowException ), () => actualFn.Invoke( actualObject ) );
         }
 
         [Test]
@@ -91,6 +216,39 @@ namespace BlueBoxMoon.Linqson.Tests
         }
 
         [Test]
+        public void AndAssign()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = 9
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = 9
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.AndAssign( propExpr, Expression.Constant( 1 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.AreEqual( expectedFn( expectedObject ), actualFn( actualObject ) );
+            Assert.AreEqual( expectedObject.PropertyValue, actualObject.PropertyValue );
+
+            actualObject.PropertyValue = 9;
+            Assert.AreEqual( 1, actualFn( actualObject ) );
+            Assert.AreEqual( 1, actualObject.PropertyValue );
+        }
+
+        [Test]
         public void AndAlso_IsTrue()
         {
             var expected = Expression.AndAlso( Expression.Constant( true ), Expression.Constant( true ) );
@@ -120,6 +278,28 @@ namespace BlueBoxMoon.Linqson.Tests
 
             Assert.AreEqual( expectedLambda.Compile().Invoke(), actualLambda.Compile().Invoke() );
             Assert.AreEqual( false, actualLambda.Compile().Invoke() );
+        }
+
+        [Test]
+        public void Assign()
+        {
+            var testObject = new TestObject
+            {
+                PropertyValue = 6
+            };
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var expected = Expression.Assign( propExpr, Expression.Constant( 10 ) );
+            var expectedLambda = Expression.Lambda<Func<TestObject, int>>( expected, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expectedLambda );
+            var actualLambda = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expectedLambda.ToString(), actualLambda.ToString() );
+
+            Assert.AreEqual( expectedLambda.Compile().Invoke( testObject ), actualLambda.Compile().Invoke( testObject ) );
+            Assert.AreEqual( 10, actualLambda.Compile().Invoke( testObject ) );
+            Assert.AreEqual( 10, testObject.PropertyValue );
         }
 
         [Test]
@@ -191,6 +371,39 @@ namespace BlueBoxMoon.Linqson.Tests
         }
 
         [Test]
+        public void DivideAssign()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = 6
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = 6
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.DivideAssign( propExpr, Expression.Constant( 2 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.AreEqual( expectedFn( expectedObject ), actualFn( actualObject ) );
+            Assert.AreEqual( expectedObject.PropertyValue, actualObject.PropertyValue );
+
+            actualObject.PropertyValue = 6;
+            Assert.AreEqual( 3, actualFn( actualObject ) );
+            Assert.AreEqual( 3, actualObject.PropertyValue );
+        }
+
+        [Test]
         public void Equal_IsTrue()
         {
             var expected = Expression.Equal( Expression.Constant( 3 ), Expression.Constant( 3 ) );
@@ -225,7 +438,7 @@ namespace BlueBoxMoon.Linqson.Tests
         [Test]
         public void ExclusiveOr()
         {
-            var expected = Expression.ExclusiveOr( Expression.Constant( 8 ), Expression.Constant( 1 ) );
+            var expected = Expression.ExclusiveOr( Expression.Constant( 9 ), Expression.Constant( 3 ) );
             var encoded = EncodedExpression.EncodeExpression( expected );
             var actual = EncodedExpression.DecodeExpression( encoded );
 
@@ -235,7 +448,40 @@ namespace BlueBoxMoon.Linqson.Tests
             var actualLambda = Expression.Lambda<Func<int>>( actual );
 
             Assert.AreEqual( expectedLambda.Compile().Invoke(), actualLambda.Compile().Invoke() );
-            Assert.AreEqual( 9, actualLambda.Compile().Invoke() );
+            Assert.AreEqual( 10, actualLambda.Compile().Invoke() );
+        }
+
+        [Test]
+        public void ExclusiveOrAssign()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = 9
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = 9
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.ExclusiveOrAssign( propExpr, Expression.Constant( 3 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.AreEqual( expectedFn( expectedObject ), actualFn( actualObject ) );
+            Assert.AreEqual( expectedObject.PropertyValue, actualObject.PropertyValue );
+
+            actualObject.PropertyValue = 9;
+            Assert.AreEqual( 10, actualFn( actualObject ) );
+            Assert.AreEqual( 10, actualObject.PropertyValue );
         }
 
         [Test]
@@ -335,6 +581,39 @@ namespace BlueBoxMoon.Linqson.Tests
         }
 
         [Test]
+        public void LeftShiftAssign()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = 1
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = 1
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.LeftShiftAssign( propExpr, Expression.Constant( 4 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.AreEqual( expectedFn( expectedObject ), actualFn( actualObject ) );
+            Assert.AreEqual( expectedObject.PropertyValue, actualObject.PropertyValue );
+
+            actualObject.PropertyValue = 1;
+            Assert.AreEqual( 16, actualFn( actualObject ) );
+            Assert.AreEqual( 16, actualObject.PropertyValue );
+        }
+
+        [Test]
         public void LessThan_IsLess()
         {
             var expected = Expression.LessThan( Expression.Constant( 1 ), Expression.Constant( 8 ) );
@@ -431,6 +710,39 @@ namespace BlueBoxMoon.Linqson.Tests
         }
 
         [Test]
+        public void ModuloAssign()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = 6
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = 6
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.ModuloAssign( propExpr, Expression.Constant( 4 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.AreEqual( expectedFn( expectedObject ), actualFn( actualObject ) );
+            Assert.AreEqual( expectedObject.PropertyValue, actualObject.PropertyValue );
+
+            actualObject.PropertyValue = 6;
+            Assert.AreEqual( 2, actualFn( actualObject ) );
+            Assert.AreEqual( 2, actualObject.PropertyValue );
+        }
+
+        [Test]
         public void Multiply()
         {
             var expected = Expression.Multiply( Expression.Constant( 3 ), Expression.Constant( 2 ) );
@@ -460,6 +772,134 @@ namespace BlueBoxMoon.Linqson.Tests
 
             Assert.AreEqual( expectedLambda.Compile().Invoke(), actualLambda.Compile().Invoke() );
             Assert.AreEqual( ( short ) -25536, actualLambda.Compile().Invoke() );
+        }
+
+        [Test]
+        public void MultiplyAssign()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = 6
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = 6
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.MultiplyAssign( propExpr, Expression.Constant( 2 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.AreEqual( expectedFn( expectedObject ), actualFn( actualObject ) );
+            Assert.AreEqual( expectedObject.PropertyValue, actualObject.PropertyValue );
+
+            actualObject.PropertyValue = 6;
+            Assert.AreEqual( 12, actualFn( actualObject ) );
+            Assert.AreEqual( 12, actualObject.PropertyValue );
+        }
+
+        [Test]
+        public void MultiplyAssign_Overflow()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = 2000000000
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = 2000000000
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.MultiplyAssign( propExpr, Expression.Constant( 2 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.AreEqual( expectedFn( expectedObject ), actualFn( actualObject ) );
+            Assert.AreEqual( expectedObject.PropertyValue, actualObject.PropertyValue );
+
+            actualObject.PropertyValue = 2000000000;
+            Assert.AreEqual( -294967296, actualFn( actualObject ) );
+            Assert.AreEqual( -294967296, actualObject.PropertyValue );
+        }
+
+        [Test]
+        public void MultiplyAssignChecked()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = 6
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = 6
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.MultiplyAssignChecked( propExpr, Expression.Constant( 2 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.AreEqual( expectedFn( expectedObject ), actualFn( actualObject ) );
+            Assert.AreEqual( expectedObject.PropertyValue, actualObject.PropertyValue );
+
+            actualObject.PropertyValue = 6;
+            Assert.AreEqual( 12, actualFn( actualObject ) );
+            Assert.AreEqual( 12, actualObject.PropertyValue );
+        }
+
+        [Test]
+        public void MultiplyAssignChecked_Overflow()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = 2000000000
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = 2000000000
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.MultiplyAssignChecked( propExpr, Expression.Constant( 2 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.Throws( typeof( OverflowException ), () => expectedFn.Invoke( expectedObject ) );
+            Assert.Throws( typeof( OverflowException ), () => actualFn.Invoke( actualObject ) );
         }
 
         [Test]
@@ -543,6 +983,39 @@ namespace BlueBoxMoon.Linqson.Tests
         }
 
         [Test]
+        public void OrAssign()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = 8
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = 8
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.OrAssign( propExpr, Expression.Constant( 1 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.AreEqual( expectedFn( expectedObject ), actualFn( actualObject ) );
+            Assert.AreEqual( expectedObject.PropertyValue, actualObject.PropertyValue );
+
+            actualObject.PropertyValue = 8;
+            Assert.AreEqual( 9, actualFn( actualObject ) );
+            Assert.AreEqual( 9, actualObject.PropertyValue );
+        }
+
+        [Test]
         public void OrElse_IsTrue()
         {
             var expected = Expression.OrElse( Expression.Constant( false ), Expression.Constant( true ) );
@@ -591,6 +1064,39 @@ namespace BlueBoxMoon.Linqson.Tests
         }
 
         [Test]
+        public void PowerAssign()
+        {
+            var expectedObject = new TestObject
+            {
+                DoubleValue = 2d
+            };
+            var actualObject = new TestObject
+            {
+                DoubleValue = 2d
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "DoubleValue" );
+            var assignExpr = Expression.PowerAssign( propExpr, Expression.Constant( 4d ) );
+            var expected = Expression.Lambda<Func<TestObject, double>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, double>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.AreEqual( expectedFn( expectedObject ), actualFn( actualObject ) );
+            Assert.AreEqual( expectedObject.DoubleValue, actualObject.DoubleValue );
+
+            actualObject.DoubleValue = 2d;
+            Assert.AreEqual( 16d, actualFn( actualObject ) );
+            Assert.AreEqual( 16d, actualObject.DoubleValue );
+        }
+
+        [Test]
         public void RightShift()
         {
             var expected = Expression.RightShift( Expression.Constant( 16 ), Expression.Constant( 4 ) );
@@ -604,6 +1110,39 @@ namespace BlueBoxMoon.Linqson.Tests
 
             Assert.AreEqual( expectedLambda.Compile().Invoke(), actualLambda.Compile().Invoke() );
             Assert.AreEqual( 1, actualLambda.Compile().Invoke() );
+        }
+
+        [Test]
+        public void RightShiftAssign()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = 16
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = 16
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.RightShiftAssign( propExpr, Expression.Constant( 4 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.AreEqual( expectedFn( expectedObject ), actualFn( actualObject ) );
+            Assert.AreEqual( expectedObject.PropertyValue, actualObject.PropertyValue );
+
+            actualObject.PropertyValue = 16;
+            Assert.AreEqual( 1, actualFn( actualObject ) );
+            Assert.AreEqual( 1, actualObject.PropertyValue );
         }
 
         [Test]
@@ -636,6 +1175,134 @@ namespace BlueBoxMoon.Linqson.Tests
 
             Assert.AreEqual( expectedLambda.Compile().Invoke(), actualLambda.Compile().Invoke() );
             Assert.AreEqual( ( short ) 25536, actualLambda.Compile().Invoke() );
+        }
+
+        [Test]
+        public void SubtractAssign()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = 6
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = 6
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.SubtractAssign( propExpr, Expression.Constant( 10 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.AreEqual( expectedFn( expectedObject ), actualFn( actualObject ) );
+            Assert.AreEqual( expectedObject.PropertyValue, actualObject.PropertyValue );
+
+            actualObject.PropertyValue = 6;
+            Assert.AreEqual( -4, actualFn( actualObject ) );
+            Assert.AreEqual( -4, actualObject.PropertyValue );
+        }
+
+        [Test]
+        public void SubtractAssign_Overflow()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = -2000000000
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = -2000000000
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.SubtractAssign( propExpr, Expression.Constant( 1000000000 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.AreEqual( expectedFn( expectedObject ), actualFn( actualObject ) );
+            Assert.AreEqual( expectedObject.PropertyValue, actualObject.PropertyValue );
+
+            actualObject.PropertyValue = -2000000000;
+            Assert.AreEqual( 1294967296, actualFn( actualObject ) );
+            Assert.AreEqual( 1294967296, actualObject.PropertyValue );
+        }
+
+        [Test]
+        public void SubtractAssignChecked()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = 6
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = 6
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.SubtractAssignChecked( propExpr, Expression.Constant( 10 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.AreEqual( expectedFn( expectedObject ), actualFn( actualObject ) );
+            Assert.AreEqual( expectedObject.PropertyValue, actualObject.PropertyValue );
+
+            actualObject.PropertyValue = 6;
+            Assert.AreEqual( -4, actualFn( actualObject ) );
+            Assert.AreEqual( -4, actualObject.PropertyValue );
+        }
+
+        [Test]
+        public void SubtractAssignChecked_Overflow()
+        {
+            var expectedObject = new TestObject
+            {
+                PropertyValue = -2000000000
+            };
+            var actualObject = new TestObject
+            {
+                PropertyValue = -2000000000
+            };
+
+            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
+            var propExpr = Expression.Property( objExpr, "PropertyValue" );
+            var assignExpr = Expression.SubtractAssignChecked( propExpr, Expression.Constant( 1000000000 ) );
+            var expected = Expression.Lambda<Func<TestObject, int>>( assignExpr, objExpr );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var actual = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var expectedFn = expected.Compile();
+            var actualFn = actual.Compile();
+
+            Assert.Throws( typeof( OverflowException ), () => expectedFn.Invoke( expectedObject ) );
+            Assert.Throws( typeof( OverflowException ), () => actualFn.Invoke( actualObject ) );
         }
 
         [Test]

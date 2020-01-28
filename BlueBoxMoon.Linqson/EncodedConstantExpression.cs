@@ -95,6 +95,10 @@ namespace BlueBoxMoon.Linqson
             {
                 return Expression.Constant( int.Parse( Value ) );
             }
+            else if ( type == typeof(long))
+            {
+                return Expression.Constant( long.Parse( Value ) );
+            }
             else if ( type == typeof( float ) )
             {
                 return Expression.Constant( float.Parse( Value ) );

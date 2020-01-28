@@ -62,5 +62,9 @@ namespace BlueBoxMoon.Linqson.Tests
         public int FieldValue;
 
         public int PropertyValue { get; set; }
+
+        public bool BoolValue { get; set; }
+
+        public double DoubleValue { get; set; }
     }
 }
