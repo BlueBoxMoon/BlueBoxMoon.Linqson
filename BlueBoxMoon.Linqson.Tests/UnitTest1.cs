@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using NUnit.Framework;
 
@@ -54,5 +55,12 @@ namespace BlueBoxMoon.Linqson.Tests
         public static void TestMethod1( IEnumerable<string> _ )
         {
         }
+    }
+
+    public class TestObject
+    {
+        public int FieldValue;
+
+        public int PropertyValue { get; set; }
     }
 }

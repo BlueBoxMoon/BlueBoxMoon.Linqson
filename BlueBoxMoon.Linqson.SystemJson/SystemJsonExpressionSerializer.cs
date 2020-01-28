@@ -61,7 +61,7 @@ namespace BlueBoxMoon.Linqson.SystemJson
 
             var encoded = JsonSerializer.Deserialize<EncodedExpression>( json, serializerOptions );
 
-            return encoded.DecodeExpression();
+            return EncodedExpression.DecodeExpression( encoded );
         }
     }
 }

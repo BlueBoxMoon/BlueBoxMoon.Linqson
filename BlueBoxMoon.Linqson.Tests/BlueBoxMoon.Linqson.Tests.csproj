@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BlueBoxMoon.Linqson.JsonNet\BlueBoxMoon.Linqson.JsonNet.csproj" />
     <ProjectReference Include="..\BlueBoxMoon.Linqson\BlueBoxMoon.Linqson.csproj" />
   </ItemGroup>
 </Project>

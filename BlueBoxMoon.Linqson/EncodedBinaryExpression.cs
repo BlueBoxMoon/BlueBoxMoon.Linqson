@@ -42,6 +42,12 @@ namespace BlueBoxMoon.Linqson
         /// </summary>
         public EncodedExpression Right { get; set; }
 
+        /// <summary>
+        /// Gets or sets the conversion expression. This will be evaluated
+        /// and passed the value of a coalesce operation.
+        /// </summary>
+        public EncodedExpression Conversion { get; set; }
+
         #endregion
 
         #region Methods
@@ -56,16 +62,12 @@ namespace BlueBoxMoon.Linqson
         /// <returns>An object that can be serialized.</returns>
         internal static EncodedBinaryExpression EncodeExpression( BinaryExpression expression, EncodeState state, EncodeOptions options )
         {
-            if ( expression.Conversion != null )
-            {
-                throw new ArgumentException( $"Binary expressions with conversion are not supported", nameof( expression ) );
-            }
-
             return new EncodedBinaryExpression
             {
                 NodeType = expression.NodeType,
                 Left = EncodeExpression( expression.Left, state, options ),
-                Right = EncodeExpression( expression.Right, state, options )
+                Right = EncodeExpression( expression.Right, state, options ),
+                Conversion = expression.Conversion != null ? EncodeExpression( expression.Conversion, state, options ) : null
             };
         }
 
@@ -77,7 +79,19 @@ namespace BlueBoxMoon.Linqson
         /// <returns>A LINQ <see cref="Expression"/> instance.</returns>
         internal protected override Expression DecodeExpression( DecodeState state, DecodeOptions options )
         {
-            return Expression.MakeBinary( NodeType, Left.DecodeExpression( state, options ), Right.DecodeExpression( state, options ) );
+            var left = Left.DecodeExpression( state, options );
+            var right = Right.DecodeExpression( state, options );
+
+            if ( Conversion == null )
+            {
+                return Expression.MakeBinary( NodeType, left, right );
+            }
+            else
+            {
+                var conversion = ( LambdaExpression ) Conversion.DecodeExpression( state, options );
+
+                return Expression.MakeBinary( NodeType, left, right, false, null, conversion );
+            }
         }
 
         #endregion

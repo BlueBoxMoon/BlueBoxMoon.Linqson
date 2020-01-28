@@ -23,6 +23,7 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace BlueBoxMoon.Linqson
 {
@@ -69,13 +70,18 @@ namespace BlueBoxMoon.Linqson
         /// <returns>An object that can be serialized.</returns>
         internal static EncodedMemberExpression EncodeExpression( MemberExpression expression, EncodeState state, EncodeOptions options )
         {
+            if ( IsAnonymousType( expression.Member.ReflectedType ) )
+            {
+                throw new Exception( "Encoding member access of anonymous types is not supported" );
+            }
+
             return new EncodedMemberExpression
             {
                 NodeType = expression.NodeType,
                 Expression = EncodeExpression( expression.Expression, state, options ),
-//                Type = $"{expression.Member.ReflectedType.FullName}, {expression.Member.ReflectedType.Assembly.GetName().Name}",
-                Member = expression.Member.Name
-//                IsProperty = expression.Member.MemberType == System.Reflection.MemberTypes.Property
+                Type = $"{expression.Member.ReflectedType.FullName}, {expression.Member.ReflectedType.Assembly.GetName().Name}",
+                Member = expression.Member.Name,
+                IsProperty = expression.Member.MemberType == MemberTypes.Property
             };
         }
 
@@ -87,19 +93,37 @@ namespace BlueBoxMoon.Linqson
         /// <returns>A LINQ <see cref="Expression"/> instance.</returns>
         internal protected override Expression DecodeExpression( DecodeState state, DecodeOptions options )
         {
-            MemberInfo memberInfo = null;
+            MemberInfo memberInfo;
             Type type = System.Type.GetType( Type );
 
             if ( IsProperty )
             {
-//                memberInfo = type.GetProperty( Member );
+                memberInfo = type.GetProperty( Member );
             }
             else
             {
-//                memberInfo = type.GetField( Member );
+                memberInfo = type.GetField( Member );
             }
 
             return System.Linq.Expressions.Expression.MakeMemberAccess( Expression.DecodeExpression( state, options ), memberInfo );
+        }
+
+        private static bool IsAnonymousType( Type type )
+        {
+            if ( type.IsGenericType )
+            {
+                var d = type.GetGenericTypeDefinition();
+                if ( d.IsClass && d.IsSealed && d.Attributes.HasFlag( TypeAttributes.NotPublic ) )
+                {
+                    var attributes = d.GetCustomAttributes( typeof( CompilerGeneratedAttribute ), false );
+                    if ( attributes != null && attributes.Length > 0 )
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         #endregion

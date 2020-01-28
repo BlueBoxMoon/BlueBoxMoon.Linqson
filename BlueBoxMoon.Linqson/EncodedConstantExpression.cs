@@ -60,7 +60,7 @@ namespace BlueBoxMoon.Linqson
             {
                 NodeType = expression.NodeType,
                 Type = expression.Type.AssemblyQualifiedName,
-                Value = expression.Value.ToString()
+                Value = expression.Value?.ToString()
             };
         }
 
@@ -74,7 +74,11 @@ namespace BlueBoxMoon.Linqson
         {
             var type = System.Type.GetType( Type );
 
-            if ( type == typeof( char ) )
+            if ( type == typeof( bool ) )
+            {
+                return Expression.Constant( bool.Parse( Value ) );
+            }
+            else if ( type == typeof( char ) )
             {
                 if ( !char.TryParse( Value, out var c ) )
                 {
@@ -83,11 +87,27 @@ namespace BlueBoxMoon.Linqson
 
                 return Expression.Constant( c );
             }
+            else if ( type == typeof( short ) )
+            {
+                return Expression.Constant( short.Parse( Value ) );
+            }
             else if ( type == typeof( int ) )
             {
                 return Expression.Constant( int.Parse( Value ) );
             }
+            else if ( type == typeof( float ) )
+            {
+                return Expression.Constant( float.Parse( Value ) );
+            }
+            else if ( type == typeof( double ) )
+            {
+                return Expression.Constant( double.Parse( Value ) );
+            }
             else if ( type == typeof( string ) )
+            {
+                return Expression.Constant( Value );
+            }
+            else if ( type == typeof( object ) )
             {
                 return Expression.Constant( Value );
             }
