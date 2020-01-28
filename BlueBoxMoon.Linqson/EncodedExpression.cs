@@ -347,7 +347,7 @@ namespace BlueBoxMoon.Linqson
                 },
                 Values = new Dictionary<string, string>
                 {
-                    { "Type", unaryExpression.Type.AssemblyQualifiedName }
+                    { "Type", state.SignatureHelper.GetSignatureFromType( unaryExpression.Type ) }
                 }
             };
         }
@@ -362,7 +362,7 @@ namespace BlueBoxMoon.Linqson
         internal static Expression DecodeUnaryExpression( EncodedExpression expression, DecodeState state, DecodeOptions options )
         {
             var operand = DecodeExpression( expression.Expressions["Operand"], state, options );
-            var type = Type.GetType( expression.Values["Type"] );
+            var type = state.SignatureHelper.GetTypeFromSignature( expression.Values["Type"] );
 
             return Expression.MakeUnary( expression.NodeType, operand, type );
         }
@@ -387,7 +387,7 @@ namespace BlueBoxMoon.Linqson
                 NodeType = constantExpression.NodeType,
                 Values = new Dictionary<string, string>
                 {
-                    { "Type", constantExpression.Type.AssemblyQualifiedName },
+                    { "Type", state.SignatureHelper.GetSignatureFromType( constantExpression.Type ) },
                     { "Value", constantExpression.Value?.ToString() }
                 }
             };
@@ -402,7 +402,7 @@ namespace BlueBoxMoon.Linqson
         /// <returns>An <see cref="Expression"/> object.</returns>
         internal static Expression DecodeConstantExpression( EncodedExpression expression, DecodeState state, DecodeOptions options )
         {
-            var type = Type.GetType( expression.Values["Type"] );
+            var type = state.SignatureHelper.GetTypeFromSignature( expression.Values["Type"] );
             var Value = expression.Values["Value"];
 
             if ( type == typeof( bool ) )
@@ -536,7 +536,7 @@ namespace BlueBoxMoon.Linqson
                 },
                 Values = new Dictionary<string, string>
                 {
-                    { "Type", $"{memberExpression.Member.ReflectedType.FullName}, {memberExpression.Member.ReflectedType.Assembly.GetName().Name}" },
+                    { "Type", state.SignatureHelper.GetSignatureFromType( memberExpression.Member.ReflectedType ) },
                     { "Member", memberExpression.Member.Name },
                     { "IsProperty", ( memberExpression.Member.MemberType == MemberTypes.Property ).ToString() }
                 }
@@ -553,7 +553,7 @@ namespace BlueBoxMoon.Linqson
         internal static Expression DecodeMemberExpression( EncodedExpression expression, DecodeState state, DecodeOptions options )
         {
             MemberInfo memberInfo;
-            Type type = Type.GetType( expression.Values["Type"] );
+            Type type = state.SignatureHelper.GetTypeFromSignature( expression.Values["Type"] );
 
             if ( bool.Parse( expression.Values["IsProperty"] ) )
             {

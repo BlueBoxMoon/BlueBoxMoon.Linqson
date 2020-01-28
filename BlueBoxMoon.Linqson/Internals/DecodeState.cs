@@ -65,7 +65,7 @@ namespace BlueBoxMoon.Linqson.Internals
                 var type = ( string ) parameter.Values["Type"];
                 var name = ( string ) parameter.Values["Name"];
 
-                _parameters.Add( guid, Expression.Parameter( Type.GetType( type ), name ) );
+                _parameters.Add( guid, Expression.Parameter( SignatureHelper.GetTypeFromSignature( type ), name ) );
             }
 
             return _parameters[guid];

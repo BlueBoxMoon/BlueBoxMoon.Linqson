@@ -65,7 +65,7 @@ namespace BlueBoxMoon.Linqson.Internals
                     NodeType = ExpressionType.Parameter,
                     Values = new Dictionary<string, string>
                     {
-                        { "Type", parameter.Type.AssemblyQualifiedName },
+                        { "Type", SignatureHelper.GetSignatureFromType( parameter.Type ) },
                         { "Name", parameter.Name },
                         { "Guid", Guid.NewGuid().ToString() }
                     }
