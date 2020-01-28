@@ -20,38 +20,49 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace BlueBoxMoon.Linqson
+namespace BlueBoxMoon.Linqson.Internals
 {
     /// <summary>
     /// Defines the current state of an operation to encode LINQ Expressions
     /// into JSON Expressions.
     /// </summary>
-    public class EncodeState
+    internal class EncodeState
     {
         #region Fields
 
         /// <summary>
         /// The current Lambda parameters in effect.
         /// </summary>
-        private Dictionary<ParameterExpression, EncodedParameterExpression> _parameters { get; } = new Dictionary<ParameterExpression, EncodedParameterExpression>();
+        private Dictionary<ParameterExpression, EncodedExpression> _parameters { get; } = new Dictionary<ParameterExpression, EncodedExpression>();
 
         #endregion
 
         #region Methods
 
         /// <summary>
-        /// Gets the <see cref="EncodedParameterExpression"/> associated with the name.
+        /// Gets the <see cref="EncodedExpression"/> associated with the name.
         /// </summary>
         /// <param name="parameter">The parameter.</param>
-        /// <returns>A <see cref="EncodedParameterExpression"/> instance.</returns>
-        public EncodedParameterExpression GetOrAddParameter( ParameterExpression parameter )
+        /// <returns>A <see cref="EncodedExpression"/> instance.</returns>
+        public EncodedExpression GetOrAddParameter( ParameterExpression parameter )
         {
             if ( !_parameters.ContainsKey( parameter ) )
             {
-                var p = new EncodedParameterExpression( parameter );
+                var p = new EncodedExpression
+                {
+                    NodeType = ExpressionType.Parameter,
+                    Values = new Dictionary<string, object>
+                    {
+                        { "Type", parameter.Type.AssemblyQualifiedName },
+                        { "Name", parameter.Name },
+                        { "Guid", Guid.NewGuid().ToString() }
+                    }
+                };
+
                 _parameters.Add( parameter, p );
             }
 

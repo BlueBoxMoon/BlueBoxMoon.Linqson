@@ -23,24 +23,29 @@
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+
+using BlueBoxMoon.Linqson.Internals;
 
 namespace BlueBoxMoon.Linqson
 {
+
     /// <summary>
     /// Definition for the most basic type of expression that can be encoded
     /// into JSON format.
     /// </summary>
-    public abstract class EncodedExpression
+    public class EncodedExpression
     {
         #region Static Properties
 
         /// <summary>
-        /// Gets the expression type mapping table to help deserializers.
+        /// Gets the expression type mapping table.
         /// </summary>
         /// <value>
-        /// The expression type mapping to help deserializers.
+        /// The expression type mapping.
         /// </value>
-        public static IReadOnlyDictionary<ExpressionType, Type> ExpressionTypeMapping { get; }
+        internal static IReadOnlyDictionary<ExpressionType, ExpressionLookup> ExpressionTypeMapping { get; }
 
         #endregion
 
@@ -66,93 +71,94 @@ namespace BlueBoxMoon.Linqson
         {
             #region Expression Type Mapping
 
-            ExpressionTypeMapping = new Dictionary<ExpressionType, Type>()
+            ExpressionTypeMapping = new Dictionary<ExpressionType, ExpressionLookup>
             {
-                { ExpressionType.Add, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.AddChecked, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.And, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.AndAlso, typeof( EncodedBinaryExpression ) },
-                //{ ExpressionType.ArrayLength, typeof() },
-                //{ ExpressionType.ArrayIndex, typeof() },
-                { ExpressionType.Call, typeof( EncodedMethodCallExpression ) },
-                { ExpressionType.Coalesce, typeof( EncodedBinaryExpression ) },
-                //{ ExpressionType.Conditional, typeof() },
-                { ExpressionType.Constant, typeof( EncodedConstantExpression ) },
-                { ExpressionType.Convert, typeof( EncodedUnaryExpression ) },
-                { ExpressionType.ConvertChecked, typeof( EncodedUnaryExpression ) },
-                { ExpressionType.Divide, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.Equal, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.ExclusiveOr, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.GreaterThan, typeof( EncodedBinaryExpression) },
-                { ExpressionType.GreaterThanOrEqual, typeof( EncodedBinaryExpression ) },
-                //{ ExpressionType.Invoke, typeof() },
-                { ExpressionType.Lambda, typeof( EncodedLambdaExpression ) },
-                { ExpressionType.LeftShift, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.LessThan, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.LessThanOrEqual, typeof( EncodedBinaryExpression ) },
-                //{ ExpressionType.ListInit, typeof() },
-                { ExpressionType.MemberAccess, typeof( EncodedMemberExpression ) },
-                //{ ExpressionType.MemberInit, typeof() },
-                { ExpressionType.Modulo, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.Multiply, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.MultiplyChecked, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.Negate, typeof( EncodedUnaryExpression ) },
-                //{ ExpressionType.UnaryPlus, typeof() },
-                { ExpressionType.NegateChecked, typeof( EncodedUnaryExpression ) },
-                //{ ExpressionType.New, typeof() },
-                //{ ExpressionType.NewArrayInit, typeof() },
-                //{ ExpressionType.NewArrayBounds, typeof() },
-                { ExpressionType.Not, typeof( EncodedUnaryExpression ) },
-                { ExpressionType.NotEqual, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.Or, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.OrElse, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.Parameter, typeof( EncodedParameterExpression ) },
-                { ExpressionType.Power, typeof( EncodedBinaryExpression ) },
-                //{ ExpressionType.Quote, typeof() },
-                { ExpressionType.RightShift, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.Subtract, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.SubtractChecked, typeof( EncodedBinaryExpression ) },
-                //{ ExpressionType.TypeAs, typeof() },
-                //{ ExpressionType.TypeIs, typeof() },
-                { ExpressionType.Assign, typeof( EncodedBinaryExpression ) },
-                //{ ExpressionType.Block, typeof() },
-                //{ ExpressionType.DebugInfo, typeof() },
-                { ExpressionType.Decrement, typeof( EncodedUnaryExpression ) },
-                //{ ExpressionType.Dynamic, typeof() },
-                //{ ExpressionType.Default, typeof() },
-                //{ ExpressionType.Extension, typeof() },
-                //{ ExpressionType.Goto, typeof() },
-                { ExpressionType.Increment, typeof( EncodedUnaryExpression ) },
-                //{ ExpressionType.Index, typeof() },
-                //{ ExpressionType.Label, typeof() },
-                //{ ExpressionType.RuntimeVariables, typeof() },
-                //{ ExpressionType.Loop, typeof() },
-                //{ ExpressionType.Switch, typeof() },
-                //{ ExpressionType.Throw, typeof() },
-                //{ ExpressionType.Try, typeof() },
-                //{ ExpressionType.Unbox, typeof() },
-                { ExpressionType.AddAssign, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.AndAssign, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.DivideAssign, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.ExclusiveOrAssign, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.LeftShiftAssign, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.ModuloAssign, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.MultiplyAssign, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.OrAssign, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.PowerAssign, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.RightShiftAssign, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.SubtractAssign, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.AddAssignChecked, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.MultiplyAssignChecked, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.SubtractAssignChecked, typeof( EncodedBinaryExpression ) },
-                { ExpressionType.PreIncrementAssign, typeof( EncodedUnaryExpression ) },
-                { ExpressionType.PreDecrementAssign, typeof( EncodedUnaryExpression ) },
-                { ExpressionType.PostIncrementAssign, typeof( EncodedUnaryExpression ) },
-                { ExpressionType.PostDecrementAssign, typeof( EncodedUnaryExpression ) },
-                //{ ExpressionType.TypeEqual, typeof() },
-                { ExpressionType.OnesComplement, typeof( EncodedUnaryExpression ) },
-                { ExpressionType.IsTrue, typeof( EncodedUnaryExpression ) },
-                { ExpressionType.IsFalse, typeof( EncodedUnaryExpression ) }
+                { ExpressionType.Add, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.AddChecked, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.And, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.AndAlso, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                // ExpressionType.ArrayLength
+                // ExpressionType.ArrayIndex
+                { ExpressionType.Call, new ExpressionLookup ( EncodeMethodCallExpression, DecodeMethodCallExpression ) },
+                { ExpressionType.Coalesce, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                // ExpressionType.Conditional
+                { ExpressionType.Constant, new ExpressionLookup( EncodeConstantExpression, DecodeConstantExpression ) },
+                { ExpressionType.Convert, new ExpressionLookup( EncodeUnaryExpression, DecodeUnaryExpression ) },
+                { ExpressionType.ConvertChecked, new ExpressionLookup( EncodeUnaryExpression, DecodeUnaryExpression ) },
+                { ExpressionType.Divide, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.Equal, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.ExclusiveOr, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.GreaterThan, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.GreaterThanOrEqual, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                // ExpressionType.Invoke
+                { ExpressionType.Lambda, new ExpressionLookup( EncodeLambdaExpression, DecodeLambdaExpression ) },
+                { ExpressionType.LeftShift, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.LessThan, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.LessThanOrEqual, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                // ExpressionType.ListInit
+                { ExpressionType.MemberAccess, new ExpressionLookup( EncodeMemberExpression, DecodeMemberExpression ) },
+                // ExpressionType.MemberInit
+                { ExpressionType.Modulo, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.Multiply, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.MultiplyChecked, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.Negate, new ExpressionLookup( EncodeUnaryExpression, DecodeUnaryExpression ) },
+                // ExpressionType.UnaryPlus
+                { ExpressionType.NegateChecked, new ExpressionLookup( EncodeUnaryExpression, DecodeUnaryExpression ) },
+                // ExpressionType.New
+                // ExpressionType.NewArrayInit
+                // ExpressionType.NewArrayBounds
+                { ExpressionType.Not, new ExpressionLookup( EncodeUnaryExpression, DecodeUnaryExpression ) },
+                { ExpressionType.NotEqual, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.Or, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.OrElse, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.Parameter, new ExpressionLookup( EncodeParameterExpression, DecodeParameterExpression ) },
+                { ExpressionType.Power, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                // ExpressionType.Quote
+                { ExpressionType.RightShift, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.Subtract, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.SubtractChecked, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                // ExpressionType.TypeAs
+                // ExpressionType.TypeIs
+                { ExpressionType.Assign, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                // ExpressionType.Block
+                // ExpressionType.DebugInfo
+                { ExpressionType.Decrement, new ExpressionLookup( EncodeUnaryExpression, DecodeUnaryExpression ) },
+                // ExpressionType.Dynamic
+                // ExpressionType.Default
+                // ExpressionType.Extension
+                // ExpressionType.Goto
+                { ExpressionType.Increment, new ExpressionLookup( EncodeUnaryExpression, DecodeUnaryExpression ) },
+                // ExpressionType.Index
+                // ExpressionType.Label
+                // ExpressionType.RuntimeVariables
+                // ExpressionType.Loop
+                // ExpressionType.Switch
+                // ExpressionType.Throw
+                // ExpressionType.Try
+                // ExpressionType.Unbox
+                { ExpressionType.AddAssign, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.AndAssign, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.DivideAssign, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.ExclusiveOrAssign, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.LeftShiftAssign, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.ModuloAssign, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.MultiplyAssign, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.OrAssign, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.PowerAssign, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.RightShiftAssign, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.SubtractAssign, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.AddAssignChecked, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.MultiplyAssignChecked, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.SubtractAssignChecked, new ExpressionLookup( EncodeBinaryExpression, DecodeBinaryExpression ) },
+                { ExpressionType.PreIncrementAssign, new ExpressionLookup( EncodeUnaryExpression, DecodeUnaryExpression ) },
+                { ExpressionType.PreDecrementAssign, new ExpressionLookup( EncodeUnaryExpression, DecodeUnaryExpression ) },
+                { ExpressionType.PostIncrementAssign, new ExpressionLookup( EncodeUnaryExpression, DecodeUnaryExpression ) },
+                { ExpressionType.PostDecrementAssign, new ExpressionLookup( EncodeUnaryExpression, DecodeUnaryExpression ) },
+                // ExpressionType.TypeEqual
+                { ExpressionType.OnesComplement, new ExpressionLookup( EncodeUnaryExpression, DecodeUnaryExpression ) },
+                { ExpressionType.IsTrue, new ExpressionLookup( EncodeUnaryExpression, DecodeUnaryExpression ) },
+                { ExpressionType.IsFalse, new ExpressionLookup( EncodeUnaryExpression, DecodeUnaryExpression ) },
+
             };
 
             #endregion
@@ -170,7 +176,7 @@ namespace BlueBoxMoon.Linqson
         /// <returns>An object that can be serialized.</returns>
         public static EncodedExpression EncodeExpression( Expression expression )
         {
-            return EncodeExpression( expression, new EncodeState(), new EncodeOptions() );
+            return EncodeExpression( expression, new EncodeOptions() );
         }
 
         /// <summary>
@@ -197,13 +203,10 @@ namespace BlueBoxMoon.Linqson
         {
             if ( !ExpressionTypeMapping.ContainsKey( expression.NodeType ) )
             {
-                throw new ArgumentException( $"Unknown node type {expression.NodeType} when serializing", nameof( expression ) );
+                throw new ArgumentException( $"Encountered unknown node type {expression.NodeType} when encoding expression.", nameof( expression ) );
             }
 
-            var type = ExpressionTypeMapping[expression.NodeType];
-            var methodInfo = type.GetMethod( "EncodeExpression", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic );
-
-            return ( EncodedExpression ) methodInfo.Invoke( null, new object[] { expression, state, options } );
+            return ExpressionTypeMapping[expression.NodeType].Encode( expression, state, options );
         }
 
         /// <summary>
@@ -224,17 +227,482 @@ namespace BlueBoxMoon.Linqson
         /// <returns>A LINQ <see cref="Expression"/> instance.</returns>
         public static Expression DecodeExpression( EncodedExpression expression, DecodeOptions options )
         {
-            return expression.DecodeExpression( new DecodeState(), options );
+            return DecodeExpression( expression, new DecodeState(), options );
         }
 
         /// <summary>
         /// Decodes the expression back into a LINQ expression.
         /// </summary>
-        /// <param name="state">The state tracker for the decode operation.</param>
+        /// <param name="expression">The encoded expression to be decoded.</param>
+        /// <param name="state">The state of the decode operation.</param>
         /// <param name="options">The options that will be used during decoding.</param>
         /// <returns>A LINQ <see cref="Expression"/> instance.</returns>
-        internal protected abstract Expression DecodeExpression( DecodeState state, DecodeOptions options );
+        internal static Expression DecodeExpression( EncodedExpression expression, DecodeState state, DecodeOptions options )
+        {
+            if ( !ExpressionTypeMapping.ContainsKey( expression.NodeType ) )
+            {
+                throw new ArgumentException( $"Encountered unknown node type {expression.NodeType} when decoding expression.", nameof( expression ) );
+            }
+
+            return ExpressionTypeMapping[expression.NodeType].Decode( expression, state, options );
+        }
+
+        /// <summary>
+        /// Determines whether the type is an anonymous type.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <returns>
+        ///   <c>true</c> if type is anonymous; otherwise, <c>false</c>.
+        /// </returns>
+        private static bool IsAnonymousType( Type type )
+        {
+            if ( type.IsGenericType )
+            {
+                var d = type.GetGenericTypeDefinition();
+                if ( d.IsClass && d.IsSealed && d.Attributes.HasFlag( TypeAttributes.NotPublic ) )
+                {
+                    var attributes = d.GetCustomAttributes( typeof( CompilerGeneratedAttribute ), false );
+                    if ( attributes != null && attributes.Length > 0 )
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
 
         #endregion
+
+        #region BinaryExpression
+
+        /// <summary>
+        /// Encodes the binary expression.
+        /// </summary>
+        /// <param name="expression">The expression to be encoded.</param>
+        /// <param name="state">The current state of the encode operation.</param>
+        /// <param name="options">The options for the encode operation.</param>
+        /// <returns>An <see cref="EncodedExpression"/> object.</returns>
+        internal static EncodedExpression EncodeBinaryExpression( Expression expression, EncodeState state, EncodeOptions options )
+        {
+            var binaryExpression = ( BinaryExpression ) expression;
+
+            return new EncodedExpression
+            {
+                NodeType = binaryExpression.NodeType,
+                Expressions = new Dictionary<string, EncodedExpression>
+                {
+                    { "Left", EncodeExpression( binaryExpression.Left, state, options ) },
+                    { "Right", EncodeExpression( binaryExpression.Right, state, options ) },
+                    { "Conversion", binaryExpression.Conversion != null ? EncodeExpression( binaryExpression.Conversion, state, options ) : null }
+                }
+            };
+        }
+
+        /// <summary>
+        /// Decodes the binary expression.
+        /// </summary>
+        /// <param name="expression">The expression to be decoded.</param>
+        /// <param name="state">The current state of the decode operation.</param>
+        /// <param name="options">The options for the decode operation.</param>
+        /// <returns>An <see cref="Expression"/> object.</returns>
+        internal static Expression DecodeBinaryExpression( EncodedExpression expression, DecodeState state, DecodeOptions options )
+        {
+            var left = DecodeExpression( expression.Expressions["Left"], state, options );
+            var right = DecodeExpression( expression.Expressions["Right"], state, options );
+
+            if ( !expression.Expressions.ContainsKey( "Conversion" ) || expression.Expressions["Conversion"] == null )
+            {
+                return Expression.MakeBinary( expression.NodeType, left, right );
+            }
+            else
+            {
+                var conversion = ( LambdaExpression ) DecodeExpression( expression.Expressions["Conversion"], state, options );
+
+                return Expression.MakeBinary( expression.NodeType, left, right, false, null, conversion );
+            }
+        }
+
+        #endregion
+
+        #region UnaryExpression
+
+        /// <summary>
+        /// Encodes the unary expression.
+        /// </summary>
+        /// <param name="expression">The expression to be encoded.</param>
+        /// <param name="state">The current state of the encode operation.</param>
+        /// <param name="options">The options for the encode operation.</param>
+        /// <returns>An <see cref="EncodedExpression"/> object.</returns>
+        internal static EncodedExpression EncodeUnaryExpression( Expression expression, EncodeState state, EncodeOptions options )
+        {
+            var unaryExpression = ( UnaryExpression ) expression;
+
+            return new EncodedExpression
+            {
+                NodeType = unaryExpression.NodeType,
+                Expressions = new Dictionary<string, EncodedExpression>
+                {
+                    { "Operand", EncodeExpression( unaryExpression.Operand, state, options ) }
+                },
+                Values = new Dictionary<string, object>
+                {
+                    { "Type", unaryExpression.Type.AssemblyQualifiedName }
+                }
+            };
+        }
+
+        /// <summary>
+        /// Decodes the unary expression.
+        /// </summary>
+        /// <param name="expression">The expression to be decoded.</param>
+        /// <param name="state">The current state of the decode operation.</param>
+        /// <param name="options">The options for the decode operation.</param>
+        /// <returns>An <see cref="Expression"/> object.</returns>
+        internal static Expression DecodeUnaryExpression( EncodedExpression expression, DecodeState state, DecodeOptions options )
+        {
+            var operand = DecodeExpression( expression.Expressions["Operand"], state, options );
+            var type = Type.GetType( ( string ) expression.Values["Type"] );
+
+            return Expression.MakeUnary( expression.NodeType, operand, type );
+        }
+
+        #endregion
+
+        #region ConstantExpression
+
+        /// <summary>
+        /// Decodes the binary expression.
+        /// </summary>
+        /// <param name="expression">The expression to be decoded.</param>
+        /// <param name="state">The current state of the decode operation.</param>
+        /// <param name="options">The options for the decode operation.</param>
+        /// <returns>An <see cref="Expression"/> object.</returns>
+        internal static EncodedExpression EncodeConstantExpression( Expression expression, EncodeState state, EncodeOptions options )
+        {
+            var constantExpression = ( ConstantExpression ) expression;
+
+            return new EncodedExpression
+            {
+                NodeType = constantExpression.NodeType,
+                Values = new Dictionary<string, object>
+                {
+                    { "Type", constantExpression.Type.AssemblyQualifiedName },
+                    { "Value", constantExpression.Value?.ToString() }
+                }
+            };
+        }
+
+        /// <summary>
+        /// Decodes the constant expression.
+        /// </summary>
+        /// <param name="expression">The expression to be decoded.</param>
+        /// <param name="state">The current state of the decode operation.</param>
+        /// <param name="options">The options for the decode operation.</param>
+        /// <returns>An <see cref="Expression"/> object.</returns>
+        internal static Expression DecodeConstantExpression( EncodedExpression expression, DecodeState state, DecodeOptions options )
+        {
+            var type = Type.GetType( ( string ) expression.Values["Type"] );
+            var Value = ( string ) expression.Values["Value"];
+
+            if ( type == typeof( bool ) )
+            {
+                return Expression.Constant( bool.Parse( Value ) );
+            }
+            else if ( type == typeof( char ) )
+            {
+                if ( !char.TryParse( Value, out var c ) )
+                {
+                    throw new Exception( "Invalid constant" );
+                }
+
+                return Expression.Constant( c );
+            }
+            else if ( type == typeof( short ) )
+            {
+                return Expression.Constant( short.Parse( Value ) );
+            }
+            else if ( type == typeof( int ) )
+            {
+                return Expression.Constant( int.Parse( Value ) );
+            }
+            else if ( type == typeof( long ) )
+            {
+                return Expression.Constant( long.Parse( Value ) );
+            }
+            else if ( type == typeof( float ) )
+            {
+                return Expression.Constant( float.Parse( Value ) );
+            }
+            else if ( type == typeof( double ) )
+            {
+                return Expression.Constant( double.Parse( Value ) );
+            }
+            else if ( type == typeof( string ) )
+            {
+                return Expression.Constant( Value );
+            }
+            else if ( type == typeof( object ) )
+            {
+                return Expression.Constant( Value );
+            }
+
+            throw new Exception( $"Unknown constant type {type}" );
+        }
+
+        #endregion
+
+        #region LambdaExpression
+
+        /// <summary>
+        /// Encodes the lambda expression.
+        /// </summary>
+        /// <param name="expression">The expression to be encoded.</param>
+        /// <param name="state">The current state of the encode operation.</param>
+        /// <param name="options">The options for the encode operation.</param>
+        /// <returns>An <see cref="EncodedExpression"/> object.</returns>
+        internal static EncodedExpression EncodeLambdaExpression( Expression expression, EncodeState state, EncodeOptions options )
+        {
+            var lambdaExpression = ( LambdaExpression ) expression;
+
+            var expressions = new Dictionary<string, EncodedExpression>
+            {
+                { "Body", EncodeExpression( lambdaExpression.Body, state, options ) }
+            };
+
+            for ( int i = 0; i < lambdaExpression.Parameters.Count; i++ )
+            {
+                expressions.Add( $"p{i}", EncodeExpression( lambdaExpression.Parameters[i], state, options ) );
+            }
+
+            return new EncodedExpression
+            {
+                NodeType = lambdaExpression.NodeType,
+                Expressions = expressions,
+                Values = new Dictionary<string, object>
+                {
+                    { "ParameterCount", lambdaExpression.Parameters.Count }
+                }
+            };
+        }
+
+        /// <summary>
+        /// Decodes the lambda expression.
+        /// </summary>
+        /// <param name="expression">The expression to be decoded.</param>
+        /// <param name="state">The current state of the decode operation.</param>
+        /// <param name="options">The options for the decode operation.</param>
+        /// <returns>An <see cref="Expression"/> object.</returns>
+        internal static Expression DecodeLambdaExpression( EncodedExpression expression, DecodeState state, DecodeOptions options )
+        {
+            var body = DecodeExpression( expression.Expressions["Body"], state, options );
+            var parameterCount = Convert.ToInt32( expression.Values["ParameterCount"] );
+            var parameters = new List<ParameterExpression>();
+
+            for ( int i = 0; i < parameterCount; i++ )
+            {
+                parameters.Add( ( ParameterExpression ) DecodeExpression( expression.Expressions[$"p{i}"], state, options ) );
+            }
+
+            return Expression.Lambda( body, parameters.ToArray() );
+        }
+
+        #endregion
+
+        #region MemberExpression
+
+        /// <summary>
+        /// Encodes the member expression.
+        /// </summary>
+        /// <param name="expression">The expression to be encoded.</param>
+        /// <param name="state">The current state of the encode operation.</param>
+        /// <param name="options">The options for the encode operation.</param>
+        /// <returns>An <see cref="EncodedExpression"/> object.</returns>
+        internal static EncodedExpression EncodeMemberExpression( Expression expression, EncodeState state, EncodeOptions options )
+        {
+            var memberExpression = ( MemberExpression ) expression;
+
+            if ( IsAnonymousType( memberExpression.Member.ReflectedType ) )
+            {
+                throw new Exception( "Encoding member access of anonymous types is not supported." );
+            }
+
+            return new EncodedExpression
+            {
+                NodeType = memberExpression.NodeType,
+                Expressions = new Dictionary<string, EncodedExpression>
+                {
+                    { "Expression", EncodeExpression( memberExpression.Expression, state, options ) }
+                },
+                Values = new Dictionary<string, object>
+                {
+                    { "Type", $"{memberExpression.Member.ReflectedType.FullName}, {memberExpression.Member.ReflectedType.Assembly.GetName().Name}" },
+                    { "Member", memberExpression.Member.Name },
+                    { "IsProperty", memberExpression.Member.MemberType == MemberTypes.Property }
+                }
+            };
+        }
+
+        /// <summary>
+        /// Decodes the member expression.
+        /// </summary>
+        /// <param name="expression">The expression to be decoded.</param>
+        /// <param name="state">The current state of the decode operation.</param>
+        /// <param name="options">The options for the decode operation.</param>
+        /// <returns>An <see cref="Expression"/> object.</returns>
+        internal static Expression DecodeMemberExpression( EncodedExpression expression, DecodeState state, DecodeOptions options )
+        {
+            MemberInfo memberInfo;
+            Type type = Type.GetType( ( string ) expression.Values["Type"] );
+
+            if ( ( bool ) expression.Values["IsProperty"] )
+            {
+                memberInfo = type.GetProperty( ( string ) expression.Values["Member"] );
+            }
+            else
+            {
+                memberInfo = type.GetField( ( string ) expression.Values["Member"] );
+            }
+
+            var expr = DecodeExpression( expression.Expressions["Expression"], state, options );
+
+            return Expression.MakeMemberAccess( expr, memberInfo );
+        }
+
+        #endregion
+
+        #region ParameterExpression
+
+        /// <summary>
+        /// Encodes the parameter expression.
+        /// </summary>
+        /// <param name="expression">The expression to be encoded.</param>
+        /// <param name="state">The current state of the encode operation.</param>
+        /// <param name="options">The options for the encode operation.</param>
+        /// <returns>An <see cref="EncodedExpression"/> object.</returns>
+        internal static EncodedExpression EncodeParameterExpression( Expression expression, EncodeState state, EncodeOptions options )
+        {
+            return state.GetOrAddParameter( ( ParameterExpression ) expression );
+        }
+
+        /// <summary>
+        /// Decodes the parameter expression.
+        /// </summary>
+        /// <param name="expression">The expression to be decoded.</param>
+        /// <param name="state">The current state of the decode operation.</param>
+        /// <param name="options">The options for the decode operation.</param>
+        /// <returns>An <see cref="Expression"/> object.</returns>
+        internal static Expression DecodeParameterExpression( EncodedExpression expression, DecodeState state, DecodeOptions options )
+        {
+            return state.GetOrAddParameter( expression );
+        }
+
+        #endregion
+
+        #region MethodCallExpression
+
+        /// <summary>
+        /// Encodes the method call expression.
+        /// </summary>
+        /// <param name="expression">The expression to be encoded.</param>
+        /// <param name="state">The current state of the encode operation.</param>
+        /// <param name="options">The options for the encode operation.</param>
+        /// <returns>An <see cref="EncodedExpression"/> object.</returns>
+        internal static EncodedExpression EncodeMethodCallExpression( Expression expression, EncodeState state, EncodeOptions options )
+        {
+            var methodCallExpression = ( MethodCallExpression ) expression;
+
+            var expressions = new Dictionary<string, EncodedExpression>();
+            var methodSignature = new TypeSignatureHelper().GetSignatureFromMethodInfo( methodCallExpression.Method );
+
+            for ( int i = 0; i < methodCallExpression.Arguments.Count; i++ )
+            {
+                expressions.Add( $"a{i}", EncodeExpression( methodCallExpression.Arguments[i], state, options ) );
+            }
+
+            if ( methodCallExpression.Object != null )
+            {
+                expressions.Add( "Object", EncodeExpression( methodCallExpression.Object, state, options ) );
+            }
+            else
+            {
+                expressions.Add( "Object", null );
+            }
+
+            return new EncodedExpression
+            {
+                NodeType = methodCallExpression.NodeType,
+                Expressions = expressions,
+                Values = new Dictionary<string, object>
+                {
+                    { "Method", methodSignature },
+                    { "ArgumentCount", methodCallExpression.Arguments.Count }
+                }
+            };
+        }
+
+        /// <summary>
+        /// Decodes the method call expression.
+        /// </summary>
+        /// <param name="expression">The expression to be decoded.</param>
+        /// <param name="state">The current state of the decode operation.</param>
+        /// <param name="options">The options for the decode operation.</param>
+        /// <returns>An <see cref="Expression"/> object.</returns>
+        internal static Expression DecodeMethodCallExpression( EncodedExpression expression, DecodeState state, DecodeOptions options )
+        {
+            var arguments = new List<Expression>();
+            Expression objectExpression = null;
+
+            if ( expression.Expressions.ContainsKey( "Object" ) && expression.Expressions["Object"] != null )
+            {
+                objectExpression = DecodeExpression( expression.Expressions["Object"], state, options );
+            }
+
+            int argumentCount = Convert.ToInt32( expression.Values["ArgumentCount"] );
+            for ( int i = 0; i < argumentCount; i++ )
+            {
+                arguments.Add( DecodeExpression( expression.Expressions[$"a{i}"], state, options ) );
+            }
+
+            var methodInfo = new TypeSignatureHelper().GetMethodInfoFromSignature( ( string ) expression.Values["Method"] );
+
+            if ( methodInfo == null )
+            {
+                throw new MethodNotFoundException( "A matching method was not found." );
+            }
+
+            if ( !options.IsMethodSafe( methodInfo ) )
+            {
+                throw new UnsafeMethodCallException( "Attempted to decode an unsafe method call." );
+            }
+
+            return Expression.Call( objectExpression, methodInfo, arguments );
+        }
+
+        #endregion
+    }
+
+    public class MethodNotFoundException : Exception
+    {
+        public MethodNotFoundException( string message )
+            : base( message )
+        {
+        }
+    }
+
+    public class UnsafeMethodCallException : Exception
+    {
+        public MethodInfo MethodInfo { get; set; }
+
+        public UnsafeMethodCallException( string message )
+            : base( message )
+        {
+        }
+
+        public UnsafeMethodCallException( string message, MethodInfo methodInfo )
+            : base( message )
+        {
+            MethodInfo = methodInfo;
+        }
     }
 }

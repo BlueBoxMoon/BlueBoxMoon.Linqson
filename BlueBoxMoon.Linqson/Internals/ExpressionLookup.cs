@@ -21,43 +21,41 @@
 // SOFTWARE.
 //
 using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace BlueBoxMoon.Linqson
+namespace BlueBoxMoon.Linqson.Internals
 {
     /// <summary>
-    /// Defines the current state of an operation to decode LINQ Expressions
-    /// into JSON Expressions.
+    /// Contains information for the mapping table to use when determining out to encode
+    /// or decode an expression.
     /// </summary>
-    public class DecodeState
+    internal class ExpressionLookup
     {
-        #region Fields
+        /// <summary>
+        /// Gets the encode method to call.
+        /// </summary>
+        /// <value>
+        /// The encode method to call.
+        /// </value>
+        public Func<Expression, EncodeState, EncodeOptions, EncodedExpression> Encode { get; }
 
         /// <summary>
-        /// The current Lambda parameters in effect.
+        /// Gets the decode method to call.
         /// </summary>
-        private Dictionary<Guid, ParameterExpression> _parameters { get; } = new Dictionary<Guid, ParameterExpression>();
-
-        #endregion
-
-        #region Methods
+        /// <value>
+        /// The decode method to call.
+        /// </value>
+        public Func<EncodedExpression, DecodeState, DecodeOptions, Expression> Decode { get; }
 
         /// <summary>
-        /// Gets the <see cref="ParameterExpression"/> associated with the parameter.
+        /// Initializes a new instance of the <see cref="ExpressionLookup"/> class.
         /// </summary>
-        /// <param name="parameter">The encoded parameter.</param>
-        /// <returns>A <see cref="ParameterExpression"/> instance.</returns>
-        public ParameterExpression GetOrAddParameter( EncodedParameterExpression parameter )
+        /// <param name="encode">The encode method.</param>
+        /// <param name="decode">The decode method.</param>
+        internal ExpressionLookup( Func<Expression, EncodeState, EncodeOptions, EncodedExpression> encode, Func<EncodedExpression, DecodeState, DecodeOptions, Expression> decode )
         {
-            if ( !_parameters.ContainsKey( parameter.Guid ) )
-            {
-                _parameters.Add( parameter.Guid, Expression.Parameter( Type.GetType( parameter.Type ), parameter.Name ) );
-            }
-
-            return _parameters[parameter.Guid];
+            Encode = encode;
+            Decode = decode;
         }
-
-        #endregion
     }
 }
