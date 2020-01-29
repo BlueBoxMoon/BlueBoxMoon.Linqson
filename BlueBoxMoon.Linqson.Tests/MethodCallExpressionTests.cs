@@ -30,6 +30,48 @@ namespace BlueBoxMoon.Linqson.Tests
     public class MethodCallExpressionTests
     {
         [Test]
+        public void CallAllowUnsafeMethod()
+        {
+            Expression<Action<MethodCallTest>> expected = ( a ) => a.AddOne();
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var decodeOptions = new DecodeOptions();
+            decodeOptions.AllowUnsafeCalls = true;
+            var actual = ( Expression<Action<MethodCallTest>> ) EncodedExpression.DecodeExpression( encoded, decodeOptions );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var testObject = new MethodCallTest();
+            expected.Compile().Invoke( testObject );
+            Assert.AreEqual( 1, testObject.Value );
+
+            testObject = new MethodCallTest();
+            actual.Compile().Invoke( testObject );
+            Assert.AreEqual( 1, testObject.Value );
+        }
+
+        [Test]
+        public void CallSafeInstanceMethod()
+        {
+            Expression<Action<MethodCallTest>> expected = ( a ) => a.AddOne();
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var decodeOptions = new DecodeOptions();
+            decodeOptions.SafeInstanceMethodTypes.Add( typeof( MethodCallTest ) );
+            var actual = ( Expression<Action<MethodCallTest>> ) EncodedExpression.DecodeExpression( encoded, decodeOptions );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var testObject = new MethodCallTest();
+            expected.Compile().Invoke( testObject );
+            Assert.AreEqual( 1, testObject.Value );
+
+            testObject = new MethodCallTest();
+            actual.Compile().Invoke( testObject );
+            Assert.AreEqual( 1, testObject.Value );
+        }
+
+        [Test]
         public void CallSafeMethod()
         {
             Expression<Action<MethodCallTest>> expected = ( a ) => a.AddOne();
@@ -51,13 +93,45 @@ namespace BlueBoxMoon.Linqson.Tests
         }
 
         [Test]
-        public void CallUnsafeMethod()
+        public void CallSafeStaticMethod()
         {
-            Expression<Action<MethodCallTest>> expected = ( a ) => a.AddOne();
+            Expression<Func<int>> expected = () => MethodCallTest.GetOne();
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var decodeOptions = new DecodeOptions();
+            decodeOptions.SafeStaticMethodTypes.Add( typeof( MethodCallTest ) );
+            var actual = ( Expression<Func<int>> ) EncodedExpression.DecodeExpression( encoded, decodeOptions );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            Assert.AreEqual( 1, expected.Compile().Invoke() );
+        }
+
+        [Test]
+        public void DecodeMissingMethod()
+        {
+            var parameterExpr = Expression.Parameter( typeof( MethodCallTest ), "a" );
+            var expected = Expression.Call( parameterExpr, typeof( MethodCallTest ).GetMethod( "AddOne" ) );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            encoded.Values["Method"] = encoded.Values["Method"].Replace( "AddOne", "MissingOne" );
+
+            Assert.Throws<MethodNotFoundException>( () => EncodedExpression.DecodeExpression( encoded ) );
+        }
+
+        [Test]
+        public void DecodeUnsafeMethod()
+        {
+            var parameterExpr = Expression.Parameter( typeof( MethodCallTest ), "a" );
+            var expected = Expression.Call( parameterExpr, typeof( MethodCallTest ).GetMethod( "AddOne" ) );
 
             var encoded = EncodedExpression.EncodeExpression( expected );
 
-            Assert.Throws( typeof( UnsafeMethodCallException ), () => EncodedExpression.DecodeExpression( encoded ) );
+            var exception = Assert.Throws<UnsafeMethodCallException>( () => EncodedExpression.DecodeExpression( encoded ) );
+
+            Assert.IsNotNull( exception.MethodInfo );
+
+            Assert.AreEqual( nameof( MethodCallTest.AddOne ), exception.MethodInfo.Name );
         }
 
         #region Test Classes
@@ -69,6 +143,11 @@ namespace BlueBoxMoon.Linqson.Tests
             public void AddOne()
             {
                 Value += 1;
+            }
+
+            public static int GetOne()
+            {
+                return 1;
             }
         }
 

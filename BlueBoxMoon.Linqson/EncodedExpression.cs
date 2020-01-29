@@ -673,36 +673,12 @@ namespace BlueBoxMoon.Linqson
 
             if ( !options.IsMethodSafe( methodInfo ) )
             {
-                throw new UnsafeMethodCallException( "Attempted to decode an unsafe method call." );
+                throw new UnsafeMethodCallException( "Attempted to decode an unsafe method call.", methodInfo );
             }
 
             return Expression.Call( objectExpression, methodInfo, arguments );
         }
 
         #endregion
-    }
-
-    public class MethodNotFoundException : Exception
-    {
-        public MethodNotFoundException( string message )
-            : base( message )
-        {
-        }
-    }
-
-    public class UnsafeMethodCallException : Exception
-    {
-        public MethodInfo MethodInfo { get; set; }
-
-        public UnsafeMethodCallException( string message )
-            : base( message )
-        {
-        }
-
-        public UnsafeMethodCallException( string message, MethodInfo methodInfo )
-            : base( message )
-        {
-            MethodInfo = methodInfo;
-        }
     }
 }
