@@ -532,6 +532,7 @@ namespace BlueBoxMoon.Linqson
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     internal class GenericMethodParameterType : Type
     {
         public override int GenericParameterPosition => _position;
