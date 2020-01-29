@@ -97,14 +97,14 @@ namespace BlueBoxMoon.Linqson
             }
             else if ( methodInfo.IsStatic )
             {
-                if ( SafeStaticMethodTypes?.Contains( methodInfo.DeclaringType ) ?? false )
+                if ( SafeStaticMethodTypes.Contains( methodInfo.DeclaringType ) )
                 {
                     return true;
                 }
             }
             else
             {
-                if ( SafeInstanceMethodTypes?.Contains( methodInfo.DeclaringType ) ?? false )
+                if ( SafeInstanceMethodTypes.Contains( methodInfo.DeclaringType ) )
                 {
                     return true;
                 }

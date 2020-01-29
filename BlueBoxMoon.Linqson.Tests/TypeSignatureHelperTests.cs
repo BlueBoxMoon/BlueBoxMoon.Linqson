@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
+using System;
 using System.Linq;
 using System.Reflection;
 
@@ -30,7 +31,33 @@ namespace BlueBoxMoon.Linqson.Tests
     public class TypeSignatureHelperTests
     {
         [Test]
-        public void TestAllEnumerableMethods()
+        public void DecodeFromNetCoreSignature()
+        {
+            var helper = new TypeSignatureHelper();
+            var signature = "SelectMany<3>@{System.Linq.Enumerable, System.Linq}({System.Collections.Generic.IEnumerable`1<{!!0}>, System.Private.CoreLib},{System.Func`3<{!!0},{System.Int32, System.Private.CoreLib},{System.Collections.Generic.IEnumerable`1<{!!1}>, System.Private.CoreLib}>, System.Private.CoreLib},{System.Func`3<{!!0},{!!1},{!!2}>, System.Private.CoreLib})";
+
+            Assert.DoesNotThrow( () => helper.GetMethodInfoFromSignature( signature ) );
+        }
+
+        [Test]
+        public void DecodeFromNetFullSignature()
+        {
+            var helper = new TypeSignatureHelper();
+            var signature = "SelectMany<3>@{System.Linq.Enumerable, System.Core}({System.Collections.Generic.IEnumerable`1<{!!0}>, mscorlib},{System.Func`2<{!!0},{System.Collections.Generic.IEnumerable`1<{!!1}>, mscorlib}>, mscorlib},{System.Func`3<{!!0},{!!1},{!!2}>, mscorlib})";
+
+            Assert.DoesNotThrow( () => helper.GetMethodInfoFromSignature( signature ) );
+        }
+
+        [Test]
+        public void DecodeFromInvalidTypeSignatureFails()
+        {
+            var helper = new TypeSignatureHelper();
+
+            Assert.Throws<Exception>( () => helper.GetTypeFromSignature( "invalid" ) );
+        }
+
+        [Test]
+        public void EncodeAndDecodeAllEnumerableMethods()
         {
             var type = typeof( Enumerable );
 
@@ -50,13 +77,35 @@ namespace BlueBoxMoon.Linqson.Tests
             }
         }
 
-        [TestCase( "SelectMany<3>@{System.Linq.Enumerable, System.Linq}({System.Collections.Generic.IEnumerable`1<{!!0}>, System.Private.CoreLib},{System.Func`3<{!!0},{System.Int32, System.Private.CoreLib},{System.Collections.Generic.IEnumerable`1<{!!1}>, System.Private.CoreLib}>, System.Private.CoreLib},{System.Func`3<{!!0},{!!1},{!!2}>, System.Private.CoreLib})" )] /* Net Core */
-        [TestCase( "SelectMany<3>@{System.Linq.Enumerable, System.Core}({System.Collections.Generic.IEnumerable`1<{!!0}>, mscorlib},{System.Func`2<{!!0},{System.Collections.Generic.IEnumerable`1<{!!1}>, mscorlib}>, mscorlib},{System.Func`3<{!!0},{!!1},{!!2}>, mscorlib})" )] /* Net Full */
-        public void DecodeFromSignature( string signature )
+        [Test]
+        public void EncodeAndDecodeMultipleTypes()
+        {
+            var helper = new TypeSignatureHelper();
+            var expectedTypes = new[] { typeof( string ), typeof( int ) };
+
+            var signature = helper.GetSignatureFromTypes( expectedTypes );
+            var actualTypes = helper.GetTypesFromSignature( signature );
+
+            Assert.IsNotNull( actualTypes );
+            Assert.AreEqual( expectedTypes.Length, actualTypes.Length );
+            Assert.AreEqual( expectedTypes[0], actualTypes[0] );
+            Assert.AreEqual( expectedTypes[1], actualTypes[1] );
+        }
+
+        [Test]
+        public void GetTypeFromNameAndAssemblyEmptyNameReturnsNull()
         {
             var helper = new TypeSignatureHelper();
 
-            Assert.DoesNotThrow( () => helper.GetMethodInfoFromSignature( signature ) );
+            Assert.IsNull( helper.GetTypeFromNameAndAssembly( string.Empty, null ) );
+        }
+
+        [Test]
+        public void GetTypeFromNameAndAssemblyEmptyAssembly()
+        {
+            var helper = new TypeSignatureHelper();
+
+            Assert.IsNotNull( helper.GetTypeFromNameAndAssembly( typeof( string ).FullName, null ) );
         }
     }
 }

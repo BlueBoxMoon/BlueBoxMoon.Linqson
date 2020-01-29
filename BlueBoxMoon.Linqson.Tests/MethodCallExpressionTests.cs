@@ -108,7 +108,7 @@ namespace BlueBoxMoon.Linqson.Tests
         }
 
         [Test]
-        public void DecodeMissingMethod()
+        public void DecodeMissingMethodIsError()
         {
             var parameterExpr = Expression.Parameter( typeof( MethodCallTest ), "a" );
             var expected = Expression.Call( parameterExpr, typeof( MethodCallTest ).GetMethod( "AddOne" ) );
@@ -120,7 +120,7 @@ namespace BlueBoxMoon.Linqson.Tests
         }
 
         [Test]
-        public void DecodeUnsafeMethod()
+        public void DecodeUnsafeInstanceMethodIsError()
         {
             var parameterExpr = Expression.Parameter( typeof( MethodCallTest ), "a" );
             var expected = Expression.Call( parameterExpr, typeof( MethodCallTest ).GetMethod( "AddOne" ) );
@@ -132,6 +132,20 @@ namespace BlueBoxMoon.Linqson.Tests
             Assert.IsNotNull( exception.MethodInfo );
 
             Assert.AreEqual( nameof( MethodCallTest.AddOne ), exception.MethodInfo.Name );
+        }
+
+        [Test]
+        public void DecodeUnsafeStaticMethodIsError()
+        {
+            var expected = Expression.Call( typeof( MethodCallTest ).GetMethod( "GetOne" ) );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+
+            var exception = Assert.Throws<UnsafeMethodCallException>( () => EncodedExpression.DecodeExpression( encoded ) );
+
+            Assert.IsNotNull( exception.MethodInfo );
+
+            Assert.AreEqual( nameof( MethodCallTest.GetOne ), exception.MethodInfo.Name );
         }
 
         #region Test Classes
