@@ -21,6 +21,7 @@
 // SOFTWARE.
 //
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -30,6 +31,33 @@ namespace BlueBoxMoon.Linqson.Tests
 {
     public class TypeSignatureHelperTests
     {
+        [Test]
+        public void AreTypesEqual_MismatchedGenericFail()
+        {
+            var helper = new TypeSignatureHelper();
+
+            Assert.IsFalse( helper.AreTypesEqual( typeof( string ), typeof( List<> ) ) );
+        }
+
+        [Test]
+        public void AreTypesEqual_MismatchedGenericArgumentCountFail()
+        {
+            var helper = new TypeSignatureHelper();
+
+            Assert.IsFalse( helper.AreTypesEqual( typeof( TestHelpOneGeneric<string> ), typeof( TestHelperTwoGenerics<string, string> ) ) );
+        }
+
+        [Test]
+        public void AreTypesEqual_MismatchedParameterPositionFail()
+        {
+            var helper = new TypeSignatureHelper();
+
+            var mi = typeof( TestHelper ).GetMethod( "TwoGenericMethod" );
+            var parameters = mi.GetParameters();
+
+            Assert.IsFalse( helper.AreTypesEqual( parameters[0].ParameterType, parameters[1].ParameterType ) );
+        }
+
         [Test]
         public void DecodeFromNetCoreSignature()
         {
@@ -46,14 +74,6 @@ namespace BlueBoxMoon.Linqson.Tests
             var signature = "SelectMany<3>@{System.Linq.Enumerable, System.Core}({System.Collections.Generic.IEnumerable`1<{!!0}>, mscorlib},{System.Func`2<{!!0},{System.Collections.Generic.IEnumerable`1<{!!1}>, mscorlib}>, mscorlib},{System.Func`3<{!!0},{!!1},{!!2}>, mscorlib})";
 
             Assert.DoesNotThrow( () => helper.GetMethodInfoFromSignature( signature ) );
-        }
-
-        [Test]
-        public void DecodeFromInvalidTypeSignatureFails()
-        {
-            var helper = new TypeSignatureHelper();
-
-            Assert.Throws<Exception>( () => helper.GetTypeFromSignature( "invalid" ) );
         }
 
         [Test]
@@ -93,6 +113,19 @@ namespace BlueBoxMoon.Linqson.Tests
         }
 
         [Test]
+        public void EncodeAndDecodeStringType()
+        {
+            var helper = new TypeSignatureHelper();
+            var expectedType = typeof( string );
+
+            var signature = helper.GetSignatureFromType( expectedType );
+            var actualType = helper.GetTypeFromSignature( signature );
+
+            Assert.IsNotNull( actualType );
+            Assert.AreEqual( expectedType, actualType );
+        }
+
+        [Test]
         public void GetTypeFromNameAndAssemblyEmptyNameReturnsNull()
         {
             var helper = new TypeSignatureHelper();
@@ -107,5 +140,81 @@ namespace BlueBoxMoon.Linqson.Tests
 
             Assert.IsNotNull( helper.GetTypeFromNameAndAssembly( typeof( string ).FullName, null ) );
         }
+
+        [Test]
+        public void GetMethodInfoFromSignature_EmptyStringFails()
+        {
+            var helper = new TypeSignatureHelper();
+
+            //SelectMany<3>@{System.Linq.Enumerable, System.Linq}({System.Collections.Generic.IEnumerable`1<{!!0}>, System.Private.CoreLib},{System.Func`3<{!!0},{System.Int32, System.Private.CoreLib},{System.Collections.Generic.IEnumerable`1<{!!1}>, System.Private.CoreLib}>, System.Private.CoreLib},{System.Func`3<{!!0},{!!1},{!!2}>, System.Private.CoreLib})
+            Assert.Throws<SignatureInvalidException>( () => helper.GetMethodInfoFromSignature( "" ) );
+        }
+
+        [Test]
+        public void GetMethodInfoFromSignature_MissingClosingGenericFails()
+        {
+            var helper = new TypeSignatureHelper();
+
+            Assert.Throws<SignatureInvalidException>( () => helper.GetTypeFromSignature( "ToString<1" ) );
+        }
+
+        [Test]
+        public void GetMethodInfoFromSignature_MissingClosingParenthesisFails()
+        {
+            var helper = new TypeSignatureHelper();
+
+            Assert.Throws<SignatureInvalidException>( () => helper.GetTypeFromSignature( "ToString@{System.Object, mscorlib}({System.Object, mscorlib}" ) );
+        }
+
+        [Test]
+        public void GetMethodInfoFromSignature_MissingOpeningParenthesisFails()
+        {
+            var helper = new TypeSignatureHelper();
+
+            Assert.Throws<SignatureInvalidException>( () => helper.GetTypeFromSignature( "ToString@{System.Object, mscorlib}" ) );
+        }
+
+        [Test]
+        public void GetTypeFromSignature_EmptyStringFails()
+        {
+            var helper = new TypeSignatureHelper();
+
+            Assert.Throws<SignatureInvalidException>( () => helper.GetTypeFromSignature( "" ) );
+        }
+
+        [Test]
+        public void GetTypeFromSignature_PartialStringFails()
+        {
+            var helper = new TypeSignatureHelper();
+
+            Assert.Throws<SignatureInvalidException>( () => helper.GetTypeFromSignature( "System.Type" ) );
+        }
+
+        [Test]
+        public void GetTypeFromSignature_MissingClosingGenericFails()
+        {
+            var helper = new TypeSignatureHelper();
+
+            Assert.Throws<SignatureInvalidException>( () => helper.GetTypeFromSignature( "System.Type<2" ) );
+        }
+
+        #region Test Classes
+
+        private class TestHelpOneGeneric<T1> : List<T1>
+        {
+        }
+
+        private class TestHelperTwoGenerics<T1, T2> : List<T1>
+        {
+        }
+
+        private class TestHelper
+        {
+            public void TwoGenericMethod<T1, T2>( T1 t1, T2 t2 )
+            {
+            }
+        }
+
+        #endregion
     }
 }

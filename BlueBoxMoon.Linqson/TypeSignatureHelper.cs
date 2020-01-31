@@ -226,12 +226,22 @@ namespace BlueBoxMoon.Linqson
         /// Get a single type from the signature reader.
         /// </summary>
         /// <param name="reader">The reader containing the signature.</param>
-        /// <returns>A <see cref="Type"/>.</returns>
+        /// <returns>
+        /// A <see cref="Type" />.
+        /// </returns>
+        /// <exception cref="BlueBoxMoon.Linqson.SignatureInvalidException">
+        /// Missing opening token.
+        /// or
+        /// Missing closing generic types token.
+        /// or
+        /// Invalid type signature.
+        /// </exception>
+        /// <exception cref="TypeNotFoundException">The type specified in the signature was not found.</exception>
         private Type GetTypeFromSignature( StringReader reader )
         {
             if ( reader.Read() != '{' )
             {
-                throw new Exception( "Invalid type signature." );
+                throw new SignatureInvalidException( "Missing opening token." );
             }
 
             Type[] typeArguments = null;
@@ -257,7 +267,7 @@ namespace BlueBoxMoon.Linqson
 
                     if ( type == null )
                     {
-                        throw new Exception( "Invalid type signature." );
+                        throw new TypeNotFoundException( "The type specified in the signature was not found." );
                     }
 
                     return type;
@@ -272,7 +282,7 @@ namespace BlueBoxMoon.Linqson
 
                     if ( reader.Read() != '>' )
                     {
-                        throw new Exception( "Invalid type signature." );
+                        throw new SignatureInvalidException( "Missing closing generic types token." );
                     }
                 }
 
@@ -289,7 +299,7 @@ namespace BlueBoxMoon.Linqson
                 //
                 else
                 {
-                    throw new Exception( "Invalid type signature." );
+                    throw new SignatureInvalidException( "Invalid type signature." );
                 }
             }
         }
@@ -348,7 +358,7 @@ namespace BlueBoxMoon.Linqson
 
                     if ( reader.Read() != '>' )
                     {
-                        throw new Exception( "Invalid method signature." );
+                        throw new SignatureInvalidException( "Missing closing generic type token." );
                     }
 
                     genericParameterCount = int.Parse( s );
@@ -373,7 +383,7 @@ namespace BlueBoxMoon.Linqson
 
                     if ( reader.Read() != ')' )
                     {
-                        throw new Exception( "Invalid method signature." );
+                        throw new SignatureInvalidException( "Missing closing method parameter token." );
                     }
 
                     return GetMethod( declaringType, methodName, genericParameterCount, parameterTypes );
@@ -384,11 +394,11 @@ namespace BlueBoxMoon.Linqson
                 //
                 else
                 {
-                    throw new Exception( "Invalid method signature." );
+                    throw new SignatureInvalidException( "Invalid method signature." );
                 }
             }
 
-            throw new Exception( "Invalid method signature." );
+            throw new SignatureInvalidException( "Invalid method signature." );
         }
 
         /// <summary>
@@ -428,11 +438,6 @@ namespace BlueBoxMoon.Linqson
 
                 var genericArguments = type.GenericTypeArguments;
                 var otherGenericArguments = otherType.GenericTypeArguments;
-
-                if ( genericArguments.Length != otherGenericArguments.Length )
-                {
-                    return false;
-                }
 
                 for ( int i = 0; i < genericArguments.Length; i++ )
                 {
