@@ -52,12 +52,27 @@ namespace BlueBoxMoon.Linqson
         #region Properties
 
         /// <summary>
-        /// The node type represented by this encoded expression.
+        /// Gets or sets the node type represented by this encoded expression.
         /// </summary>
+        /// <value>
+        /// The node type represented by this encoded expression.
+        /// </value>
         public ExpressionType NodeType { get; set; }
 
+        /// <summary>
+        /// Gets or sets the child encoded expressions.
+        /// </summary>
+        /// <value>
+        /// The child encoded expressions.
+        /// </value>
         public IDictionary<string, EncodedExpression> Expressions { get; set; }
 
+        /// <summary>
+        /// Gets or sets the encoded property values.
+        /// </summary>
+        /// <value>
+        /// The encoded property values.
+        /// </value>
         public IDictionary<string, string> Values { get; set; }
 
         #endregion
@@ -259,13 +274,10 @@ namespace BlueBoxMoon.Linqson
             if ( type.IsGenericType )
             {
                 var d = type.GetGenericTypeDefinition();
-                if ( d.IsClass && d.IsSealed && d.Attributes.HasFlag( TypeAttributes.NotPublic ) )
+                bool notPublic = d.Attributes.HasFlag( TypeAttributes.NotPublic );
+                if ( d.IsClass && d.IsSealed && notPublic && d.GetCustomAttribute<CompilerGeneratedAttribute>() != null )
                 {
-                    var attributes = d.GetCustomAttributes( typeof( CompilerGeneratedAttribute ), false );
-                    if ( attributes != null && attributes.Length > 0 )
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
@@ -311,7 +323,7 @@ namespace BlueBoxMoon.Linqson
             var left = DecodeExpression( expression.Expressions["Left"], state, options );
             var right = DecodeExpression( expression.Expressions["Right"], state, options );
 
-            if ( !expression.Expressions.ContainsKey( "Conversion" ) || expression.Expressions["Conversion"] == null )
+            if ( expression.Expressions["Conversion"] == null )
             {
                 return Expression.MakeBinary( expression.NodeType, left, right );
             }
@@ -405,49 +417,7 @@ namespace BlueBoxMoon.Linqson
             var type = state.SignatureHelper.GetTypeFromSignature( expression.Values["Type"] );
             var Value = expression.Values["Value"];
 
-            if ( type == typeof( bool ) )
-            {
-                return Expression.Constant( bool.Parse( Value ) );
-            }
-            else if ( type == typeof( char ) )
-            {
-                if ( !char.TryParse( Value, out var c ) )
-                {
-                    throw new Exception( "Invalid constant" );
-                }
-
-                return Expression.Constant( c );
-            }
-            else if ( type == typeof( short ) )
-            {
-                return Expression.Constant( short.Parse( Value ) );
-            }
-            else if ( type == typeof( int ) )
-            {
-                return Expression.Constant( int.Parse( Value ) );
-            }
-            else if ( type == typeof( long ) )
-            {
-                return Expression.Constant( long.Parse( Value ) );
-            }
-            else if ( type == typeof( float ) )
-            {
-                return Expression.Constant( float.Parse( Value ) );
-            }
-            else if ( type == typeof( double ) )
-            {
-                return Expression.Constant( double.Parse( Value ) );
-            }
-            else if ( type == typeof( string ) )
-            {
-                return Expression.Constant( Value );
-            }
-            else if ( type == typeof( object ) )
-            {
-                return Expression.Constant( Value );
-            }
-
-            throw new Exception( $"Unknown constant type {type}" );
+            return Expression.Constant( Convert.ChangeType( Value, type ) );
         }
 
         #endregion

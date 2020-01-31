@@ -21,6 +21,7 @@
 // SOFTWARE.
 //
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 using NUnit.Framework;
@@ -33,13 +34,23 @@ namespace BlueBoxMoon.Linqson.Tests
         public void IsAnonymousType_Fail()
         {
             var anonObject = new { Value = 4 };
-            var anonType = anonObject.GetType();
 
-            var objExpr = Expression.Parameter( anonType, "p" );
+            var objExpr = Expression.Parameter( anonObject.GetType(), "p" );
             var expected = Expression.Property( objExpr, "Value" );
 
             var ex = Assert.Throws<Exception>( () => EncodedExpression.EncodeExpression( expected ) );
             Assert.AreEqual( "Encoding member access of anonymous types is not supported.", ex.Message );
+        }
+
+        [Test]
+        public void IsAnonymousType_GenericPass()
+        {
+            var anonObject = new List<string>();
+
+            var objExpr = Expression.Parameter( anonObject.GetType(), "p" );
+            var expected = Expression.Property( objExpr, "Count" );
+
+            Assert.DoesNotThrow( () => EncodedExpression.EncodeExpression( expected ) );
         }
 
         [Test]
