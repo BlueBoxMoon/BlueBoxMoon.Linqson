@@ -653,7 +653,7 @@ namespace BlueBoxMoon.Linqson
             var arguments = new List<Expression>();
             Expression objectExpression = null;
 
-            if ( expression.Expressions.ContainsKey( "Object" ) && expression.Expressions["Object"] != null )
+            if ( expression.Expressions["Object"] != null )
             {
                 objectExpression = DecodeExpression( expression.Expressions["Object"], state, options );
             }

@@ -30,18 +30,31 @@ namespace BlueBoxMoon.Linqson.Tests
     public class MemberExpressionTests
     {
         [Test]
-        public void MemberAccessProperty()
+        public void IsAnonymousType_Fail()
         {
-            var testObject = new TestObject
+            var anonObject = new { Value = 4 };
+            var anonType = anonObject.GetType();
+
+            var objExpr = Expression.Parameter( anonType, "p" );
+            var expected = Expression.Property( objExpr, "Value" );
+
+            var ex = Assert.Throws<Exception>( () => EncodedExpression.EncodeExpression( expected ) );
+            Assert.AreEqual( "Encoding member access of anonymous types is not supported.", ex.Message );
+        }
+
+        [Test]
+        public void MemberAccessField()
+        {
+            var testObject = new TestHelper
             {
-                PropertyValue = 6
+                FieldValue = 6
             };
-            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
-            var expected = Expression.Property( objExpr, "PropertyValue" );
-            var expectedLambda = Expression.Lambda<Func<TestObject, int>>( expected, objExpr );
+            var objExpr = Expression.Parameter( typeof( TestHelper ), "p" );
+            var expected = Expression.Field( objExpr, "FieldValue" );
+            var expectedLambda = Expression.Lambda<Func<TestHelper, int>>( expected, objExpr );
 
             var encoded = EncodedExpression.EncodeExpression( expectedLambda );
-            var actualLambda = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+            var actualLambda = ( Expression<Func<TestHelper, int>> ) EncodedExpression.DecodeExpression( encoded );
 
             Assert.AreEqual( expectedLambda.ToString(), actualLambda.ToString() );
 
@@ -50,23 +63,34 @@ namespace BlueBoxMoon.Linqson.Tests
         }
 
         [Test]
-        public void MemberAccessField()
+        public void MemberAccessProperty()
         {
-            var testObject = new TestObject
+            var testObject = new TestHelper
             {
-                FieldValue = 6
+                PropertyValue = 6
             };
-            var objExpr = Expression.Parameter( typeof( TestObject ), "p" );
-            var expected = Expression.Field( objExpr, "FieldValue" );
-            var expectedLambda = Expression.Lambda<Func<TestObject, int>>( expected, objExpr );
+            var objExpr = Expression.Parameter( typeof( TestHelper ), "p" );
+            var expected = Expression.Property( objExpr, "PropertyValue" );
+            var expectedLambda = Expression.Lambda<Func<TestHelper, int>>( expected, objExpr );
 
             var encoded = EncodedExpression.EncodeExpression( expectedLambda );
-            var actualLambda = ( Expression<Func<TestObject, int>> ) EncodedExpression.DecodeExpression( encoded );
+            var actualLambda = ( Expression<Func<TestHelper, int>> ) EncodedExpression.DecodeExpression( encoded );
 
             Assert.AreEqual( expectedLambda.ToString(), actualLambda.ToString() );
 
             Assert.AreEqual( expectedLambda.Compile().Invoke( testObject ), actualLambda.Compile().Invoke( testObject ) );
             Assert.AreEqual( 6, actualLambda.Compile().Invoke( testObject ) );
         }
+
+        #region Test Classes
+
+        private class TestHelper
+        {
+            public int FieldValue;
+
+            public int PropertyValue { get; set; }
+        }
+
+        #endregion
     }
 }

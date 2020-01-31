@@ -108,6 +108,28 @@ namespace BlueBoxMoon.Linqson.Tests
         }
 
         [Test]
+        public void CallTwoParameterMethod()
+        {
+            Expression<Func<MethodCallTest, int>> expected = ( a ) => a.AddValues( 1, 2 );
+
+            var encoded = EncodedExpression.EncodeExpression( expected );
+            var decodeOptions = new DecodeOptions
+            {
+                AllowUnsafeCalls = true
+            };
+            var actual = ( Expression<Func<MethodCallTest, int>> ) EncodedExpression.DecodeExpression( encoded, decodeOptions );
+
+            Assert.AreEqual( expected.ToString(), actual.ToString() );
+
+            var testObject = new MethodCallTest();
+            Assert.AreEqual( 3, expected.Compile().Invoke( testObject ) );
+
+            testObject = new MethodCallTest();
+            Assert.AreEqual( 3, actual.Compile().Invoke( testObject ) );
+        }
+
+
+        [Test]
         public void DecodeMissingMethodIsError()
         {
             var parameterExpr = Expression.Parameter( typeof( MethodCallTest ), "a" );
@@ -162,6 +184,11 @@ namespace BlueBoxMoon.Linqson.Tests
             public static int GetOne()
             {
                 return 1;
+            }
+
+            public int AddValues( int a, int b )
+            {
+                return a + b;
             }
         }
 
