@@ -36,7 +36,10 @@ namespace BlueBoxMoon.Linqson.Tests
         {
             var helper = new TypeSignatureHelper();
 
-            Assert.IsFalse( helper.AreTypesEqual( typeof( string ), typeof( List<> ) ) );
+            var mi = typeof( TestHelper ).GetMethod( "TwoGenericMethod" );
+            var parameters = mi.GetParameters();
+
+            Assert.IsFalse( helper.AreTypesEqual( parameters[0].ParameterType, typeof( string ) ) );
         }
 
         [Test]
@@ -126,6 +129,38 @@ namespace BlueBoxMoon.Linqson.Tests
         }
 
         [Test]
+        public void GetMethodInfoFromSignature_EmptyStringFails()
+        {
+            var helper = new TypeSignatureHelper();
+
+            Assert.Throws<SignatureInvalidException>( () => helper.GetMethodInfoFromSignature( "" ) );
+        }
+
+        [Test]
+        public void GetMethodInfoFromSignature_MissingClosingGenericFails()
+        {
+            var helper = new TypeSignatureHelper();
+
+            Assert.Throws<SignatureInvalidException>( () => helper.GetMethodInfoFromSignature( "ToString<1" ) );
+        }
+
+        [Test]
+        public void GetMethodInfoFromSignature_MissingClosingParenthesisFails()
+        {
+            var helper = new TypeSignatureHelper();
+
+            Assert.Throws<SignatureInvalidException>( () => helper.GetMethodInfoFromSignature( "ToString@{System.Object, mscorlib}({System.Object, mscorlib}" ) );
+        }
+
+        [Test]
+        public void GetMethodInfoFromSignature_MissingOpeningParenthesisFails()
+        {
+            var helper = new TypeSignatureHelper();
+
+            Assert.Throws<SignatureInvalidException>( () => helper.GetMethodInfoFromSignature( "ToString@{System.Object, mscorlib}X" ) );
+        }
+
+        [Test]
         public void GetTypeFromNameAndAssemblyEmptyNameReturnsNull()
         {
             var helper = new TypeSignatureHelper();
@@ -142,36 +177,11 @@ namespace BlueBoxMoon.Linqson.Tests
         }
 
         [Test]
-        public void GetMethodInfoFromSignature_EmptyStringFails()
+        public void GetTypeFromSignature_MissingTypeFails()
         {
             var helper = new TypeSignatureHelper();
 
-            //SelectMany<3>@{System.Linq.Enumerable, System.Linq}({System.Collections.Generic.IEnumerable`1<{!!0}>, System.Private.CoreLib},{System.Func`3<{!!0},{System.Int32, System.Private.CoreLib},{System.Collections.Generic.IEnumerable`1<{!!1}>, System.Private.CoreLib}>, System.Private.CoreLib},{System.Func`3<{!!0},{!!1},{!!2}>, System.Private.CoreLib})
-            Assert.Throws<SignatureInvalidException>( () => helper.GetMethodInfoFromSignature( "" ) );
-        }
-
-        [Test]
-        public void GetMethodInfoFromSignature_MissingClosingGenericFails()
-        {
-            var helper = new TypeSignatureHelper();
-
-            Assert.Throws<SignatureInvalidException>( () => helper.GetTypeFromSignature( "ToString<1" ) );
-        }
-
-        [Test]
-        public void GetMethodInfoFromSignature_MissingClosingParenthesisFails()
-        {
-            var helper = new TypeSignatureHelper();
-
-            Assert.Throws<SignatureInvalidException>( () => helper.GetTypeFromSignature( "ToString@{System.Object, mscorlib}({System.Object, mscorlib}" ) );
-        }
-
-        [Test]
-        public void GetMethodInfoFromSignature_MissingOpeningParenthesisFails()
-        {
-            var helper = new TypeSignatureHelper();
-
-            Assert.Throws<SignatureInvalidException>( () => helper.GetTypeFromSignature( "ToString@{System.Object, mscorlib}" ) );
+            Assert.Throws<TypeNotFoundException>( () => helper.GetTypeFromSignature( "{Some.Bogus.Type, mscorlib}" ) );
         }
 
         [Test]
@@ -187,7 +197,7 @@ namespace BlueBoxMoon.Linqson.Tests
         {
             var helper = new TypeSignatureHelper();
 
-            Assert.Throws<SignatureInvalidException>( () => helper.GetTypeFromSignature( "System.Type" ) );
+            Assert.Throws<SignatureInvalidException>( () => helper.GetTypeFromSignature( "{System.Type" ) );
         }
 
         [Test]
@@ -195,7 +205,7 @@ namespace BlueBoxMoon.Linqson.Tests
         {
             var helper = new TypeSignatureHelper();
 
-            Assert.Throws<SignatureInvalidException>( () => helper.GetTypeFromSignature( "System.Type<2" ) );
+            Assert.Throws<SignatureInvalidException>( () => helper.GetTypeFromSignature( "{System.Type<{System.Type, mscorlib}" ) );
         }
 
         #region Test Classes
