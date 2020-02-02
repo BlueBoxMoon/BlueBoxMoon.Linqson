@@ -2,13 +2,11 @@ trigger:
 - master
 - develop
 
-name: 'Auto Build'
+variables:
+  BuildConfiguration: 'release'
 
 pool:
   vmImage: 'windows-2019'
-
-variables:
-  BuildConfiguration: 'release'
 
 steps:
 - task: gittools.gitversion.gitversion-task.GitVersion@4
