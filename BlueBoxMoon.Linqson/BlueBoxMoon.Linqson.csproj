@@ -2,6 +2,12 @@
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.1;netstandard2.1;net45</TargetFrameworks>
+    <Authors>Daniel Hazelbaker</Authors>
+    <Copyright>Copyright © 2020</Copyright>
+    <PackageLicenseUrl>https://github.com/BlueBoxMoon/BlueBoxMoon.Linqson/blob/master/LICENSE</PackageLicenseUrl>
+    <Owners>Daniel Hazelbaker</Owners>
+    <PackageProjectUrl>https://github.com/BlueBoxMoon/BlueBoxMoon.Linqson</PackageProjectUrl>
+    <Description>A C# library for serializing LINQ queries into JSON and back.</Description>
   </PropertyGroup>
 
   <!-- .NET Core 2.1 references, compilation flags and build options -->
