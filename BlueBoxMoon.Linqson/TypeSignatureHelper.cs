@@ -520,7 +520,7 @@ namespace BlueBoxMoon.Linqson
         }
     }
 
-#if NETCOREAPP || NETSTANDARD
+#if NETCOREAPP
     public partial class TypeSignatureHelper
     {
         protected Type MakeGenericMethodParameter( int position )
@@ -528,7 +528,7 @@ namespace BlueBoxMoon.Linqson
             return Type.MakeGenericMethodParameter( position );
         }
     }
-#elif NETFULL
+#elif NETSTANDARD || NETFULL
     public partial class TypeSignatureHelper
     {
         protected Type MakeGenericMethodParameter( int position )
@@ -551,7 +551,7 @@ namespace BlueBoxMoon.Linqson
             _position = position;
         }
 
-        #region Not Implemented
+    #region Not Implemented
 
         public override Assembly Assembly => throw new NotImplementedException();
 
@@ -707,7 +707,7 @@ namespace BlueBoxMoon.Linqson
             throw new NotImplementedException();
         }
 
-        #endregion
+    #endregion
     }
 #else
 #error Unsupported SDK framework.
