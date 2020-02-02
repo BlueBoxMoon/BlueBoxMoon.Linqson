@@ -6,6 +6,7 @@ name: 'Auto Build'
 
 variables:
   BuildConfiguration: 'release'
+  PackProjects: '**/*.csproj;!**/*.Tests.csproj'
 
 pool:
   vmImage: 'windows-2019'
@@ -39,8 +40,8 @@ steps:
 - task: DotNetCoreCLI@2
   displayName: 'dotnet pack'
   inputs:
-    command: pack
-    packagesToPack: '$(Parameters.projects)'
+    command: 'pack'
+    packagesToPack: '$(PackProjects)'
     nobuild: true
-    versioningScheme: byEnvVar
-    versionEnvVar: GitVersion.NuGetVersion
+    versioningScheme: 'byEnvVar'
+    versionEnvVar: 'GitVersion.NuGetVersion'
