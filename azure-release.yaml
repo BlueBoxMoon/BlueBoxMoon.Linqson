@@ -1,0 +1,43 @@
+variables:
+  BuildConfiguration: 'release'
+
+steps:
+- task: gittools.gitversion.gitversion-task.GitVersion@4
+  displayName: GitVersion
+  inputs:
+    preferBundledVersion: false
+
+- task: DotNetCoreInstaller@0
+  displayName: 'Use .NET Core sdk 2.2.104'
+  inputs:
+    version: 2.2.104
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet restore from feed'
+  inputs:
+    command: restore
+    projects: '$(Parameters.projects)'
+    versioningScheme: byBuildNumber
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet build'
+  inputs:
+    projects: '$(Parameters.projects)'
+    arguments: '--configuration $(BuildConfiguration) /p:Version=$(GitVersion.NuGetVersion)'
+    versioningScheme: byBuildNumber
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet test'
+  inputs:
+    command: test
+    projects: '**/*.Tests.csproj'
+    arguments: '/p:CollectCoverage=true'
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet pack'
+  inputs:
+    command: pack
+    packagesToPack: '$(Parameters.projects)'
+    nobuild: true
+    versioningScheme: byEnvVar
+    versionEnvVar: GitVersion.NuGetVersion
