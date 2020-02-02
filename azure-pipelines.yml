@@ -35,7 +35,20 @@ steps:
   inputs:
     command: test
     projects: '**/*.Tests.csproj'
-    arguments: '/p:CollectCoverage=true'
+    arguments: '/p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)\TestResults\Coverage\coverage.cobertura.xml'
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet reportgenerator'
+  inputs:
+    command: custom
+    projects: '**/*.Tests.csproj'
+    custom: reportgenerator
+    arguments: '"-reports:$(Build.SourcesDirectory)\TestResults\Coverage\coverage.cobertura*.xml" -reporttypes:Cobertura "-targetdir:$(Build.SourcesDirectory)\TestResults\Coverage"'
+
+- task: PublishCodeCoverageResults@1
+  inputs:
+    codeCoverageTool: 'Cobertura'
+    summaryFileLocation: '$(Build.SourcesDirectory)\TestResults\Coverage\Cobertura.xml'
 
 - task: DotNetCoreCLI@2
   displayName: 'dotnet pack'
@@ -45,3 +58,9 @@ steps:
     nobuild: true
     versioningScheme: 'byEnvVar'
     versionEnvVar: 'GitVersion.NuGetVersion'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
